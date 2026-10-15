@@ -1,0 +1,1187 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Apli PMPML Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@500;700;800&family=Noto+Sans+Devanagari:wght@400;600&display=swap">
+<style>
+/* Layout: a working phone on the left, a plain-language note on the right that follows whatever screen is open; a second tab lines up today's app against the new screens. */
+:root{
+  --bg:#EEF1EE; --surface:#FFFFFF; --fg:#18201A; --muted:#566159; --line:#D5DBD5;
+  --accent:#3E7F49; --accent-soft:#DDEBDF; --note:#8A5410; --note-soft:#F5E8D6;
+  --display:"Mukta","Noto Sans Devanagari",system-ui,sans-serif;
+  --body:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111512; --surface:#1A201C; --fg:#E6ECE7; --muted:#A1ADA4; --line:#2E3831;
+  --accent:#7DC38B; --accent-soft:#1E3324; --note:#E5A75C; --note-soft:#3A2A16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111512; --surface:#1A201C; --fg:#E6ECE7; --muted:#A1ADA4; --line:#2E3831;
+  --accent:#7DC38B; --accent-soft:#1E3324; --note:#E5A75C; --note-soft:#3A2A16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 56px;position:relative}
+.about{position:absolute;top:24px;right:20px;z-index:20}
+.about-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:700 15px/1 Georgia,"Times New Roman",serif;font-style:italic;cursor:pointer;display:grid;place-items:center}
+.about-btn:hover,.about-btn[aria-expanded="true"]{color:var(--fg);border-color:var(--muted)}
+.about-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.about-pop{position:absolute;top:40px;right:0;width:min(280px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--muted);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.about-pop b{color:var(--fg);font-weight:600}
+@media (max-width:480px){.about{top:20px;right:16px}}
+.wrap h1{padding-right:44px}
+.label{display:inline-block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--note);background:var(--note-soft);padding:4px 10px;border-radius:4px;font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,4.4vw,46px);line-height:1.05;margin:14px 0 8px;text-wrap:balance}
+h1 .mr{font-family:"Noto Sans Devanagari",var(--display);font-weight:600;color:var(--accent);font-size:.55em;display:block;margin-top:8px}
+.lede{max-width:68ch;color:var(--muted);margin:0 0 14px}
+.lede b{color:var(--fg)}
+details.primer{max-width:68ch;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:0 0 22px}
+details.primer summary{cursor:pointer;font-weight:600}
+details.primer p{margin:8px 0 2px;color:var(--muted)}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:24px;flex-wrap:wrap}
+.tab{background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);font:600 15px var(--body);padding:10px 14px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab:focus-visible,.btn:focus-visible,.steps-list button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stage{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn{font:600 13px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 12px;border-radius:8px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.ctrl-k{font-size:12px;color:var(--muted);text-align:center}
+.notes{min-width:0}
+.step-k{font-family:var(--display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.notes h2{font-family:var(--display);font-size:28px;line-height:1.15;margin:4px 0 12px;text-wrap:balance}
+.rows{display:grid;gap:10px;margin:12px 0 18px;max-width:62ch}
+.rows div{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:baseline}
+.rows b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rows .n b{color:var(--accent)}
+.chap{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 0 4px}
+.steps-list{list-style:none;padding:0;margin:0;display:grid;gap:2px;max-width:62ch}
+.steps-list button{width:100%;text-align:left;background:none;border:0;color:var(--muted);font:14px var(--body);padding:6px 8px;border-radius:6px;cursor:pointer;display:flex;gap:10px}
+.steps-list .num{font-variant-numeric:tabular-nums;width:20px;flex:none}
+.steps-list button[aria-current="true"]{background:var(--accent-soft);color:var(--fg);font-weight:600}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);max-width:90ch}
+/* flow board */
+.flow{display:grid;gap:34px}
+.frow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px) minmax(0,220px);gap:22px;align-items:start;padding-bottom:30px;border-bottom:1px solid var(--line)}
+@media (max-width:760px){.frow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.frow .ftxt{grid-column:1/-1}}
+.ftxt{position:sticky;top:16px}
+.ftxt h3{font-family:var(--display);font-size:22px;line-height:1.15;margin:2px 0 8px;text-wrap:balance}
+.ftxt p{margin:0 0 8px;color:var(--muted);max-width:52ch}
+.ftxt p b{color:var(--fg)}
+.fcol{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fcol .cap{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.fcol .cap.n{color:var(--accent)}
+.dev{width:100%;border-radius:18px;border:6px solid #0E0E0E;overflow:hidden;background:#0E0E0E}
+.dev-in{position:relative;width:100%;aspect-ratio:320/650;overflow:hidden;background:#F7F7F7}
+.shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.mini .scr{position:absolute;left:0;top:0;width:393px;height:798.28px;border-radius:0;transform-origin:top left;pointer-events:none}
+.none{aspect-ratio:320/650;border:1px dashed var(--line);border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;color:var(--muted);font-size:13px}
+
+/* ---------- Phone: Apli PMPML v1.4.0 look, fixed light ---------- */
+.phone{width:100%;max-width:360px;aspect-ratio:360/740;background:#0E0E0E;border-radius:46px;padding:9px;box-shadow:0 24px 50px rgba(0,0,0,.18)}
+.scr{--g:#489054;--gd:#84BA96;--ok:#3C7E42;--bad:#CC6C66;--pg:#F7F7F7;--bg2:#F1F1F1;--card:#F0F0F0;--tile:#E4F0FC;--ink:#111;--sub:#7A7A7A;--ln:#C9C9C9;--amb:#E07B39;--ambs:#FBE9DD;
+  position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--pg);color:var(--ink);
+  font-family:-apple-system,"SF Pro Text",system-ui,"Noto Sans Devanagari",sans-serif;font-size:14px;line-height:1.35;display:flex;flex-direction:column}
+.scr.grey{background:var(--bg2)}
+:where(.scr button){font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+.scr button:focus-visible,.scr input:focus-visible{outline:2px solid #2B6CB0;outline-offset:2px}
+.scr svg{display:block}
+.sb{height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:600}
+.sb .r{display:flex;gap:5px;align-items:center}
+.body{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+/* top bars */
+.hbar{display:flex;align-items:center;gap:16px;padding:8px 18px 12px}
+.hbar h4{margin:0;font-size:18px;font-weight:400;flex:1}
+.hbar.white{background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.08);padding:12px 18px}
+.hbar.white h4.b{font-weight:700}
+.timer{background:var(--g);color:#fff;font-weight:600;font-size:15px;padding:3px 12px;border-radius:14px;font-variant-numeric:tabular-nums}
+.hometop{background:#fff;border-bottom:1px solid #DADADA;display:flex;align-items:center;padding:6px 16px 8px;gap:14px}
+.mark{width:44px;height:44px;border-radius:50%;border:1.5px solid #CFCFCF;display:flex;align-items:center;justify-content:center;color:#C33}
+.hometop .sp{flex:1}
+.avatar{width:36px;height:36px;border-radius:50%;background:#111;display:flex;align-items:center;justify-content:center}
+/* home */
+.search{margin:14px 16px 0;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.15);padding:9px}
+.search .pill{background:#D4D4D4;border-radius:22px;display:flex;align-items:center;gap:12px;padding:9px 16px;font-family:"Noto Sans Devanagari",sans-serif;font-size:17px;width:100%}
+.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 16px 0}
+.tiles4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 16px 0}
+.tile{display:flex;flex-direction:column;gap:8px}
+.tile .t{background:var(--tile);border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;height:58px}
+.tiles4 .t{height:60px}
+.tile span{font-size:14px;line-height:1.2}
+.tiles2 .tile span{text-align:center}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 16px 8px}
+.sec h5{margin:0;font-size:18px;font-weight:700}
+.sec .lnk{text-decoration:underline;font-size:14px}
+.sec .mr{font-family:"Noto Sans Devanagari",sans-serif;font-size:12px;color:var(--sub);font-weight:400;margin-left:6px}
+.upibar{margin:14px 16px 0;background:#fff;border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.upibar .ic{width:36px;height:36px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;flex:none}
+.upibar .tx{flex:1;min-width:0}
+.upibar .tx b{display:block;font-size:14px}
+.upibar .tx span{font-size:12px;color:var(--sub)}
+.gbtn{background:var(--g);color:#fff!important;font-weight:600;border-radius:8px;padding:7px 12px;font-size:13px;white-space:nowrap}
+.gbtn.out{background:#fff;color:var(--g)!important;border:1px solid var(--g)}
+.car{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 16px 6px;scroll-padding:0 16px;scrollbar-width:none;cursor:grab}
+.car::-webkit-scrollbar{display:none}
+.trip{flex:0 0 84%;scroll-snap-align:start;background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.12);padding:12px 14px;display:flex;flex-direction:column;gap:8px;user-select:none}
+.trip .top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub)}
+.trip .tag{background:var(--card);border-radius:10px;padding:2px 8px;font-size:11px;color:#444}
+.trip .od{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.25}
+.trip .meta{font-size:13px;color:var(--sub)}
+.trip .rt{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.trip .rt .k{font-size:12px;color:var(--sub);flex-basis:100%}
+.rchip{border:1.5px solid var(--g);color:var(--g)!important;font-weight:700;border-radius:8px;padding:5px 12px;font-size:15px;background:#fff}
+.rchip:active,.rchip.on{background:var(--g);color:#fff!important}
+.dots{display:flex;gap:6px;justify-content:center;margin:4px 0 0}
+.dots i{width:6px;height:6px;border-radius:50%;background:#C4C4C4;display:block}
+.dots i.on{background:var(--g);width:16px;border-radius:3px}
+.dots i[data-act]{cursor:pointer;outline:6px solid transparent}
+.scr [data-act]{cursor:pointer}
+.field textarea{width:100%;border:1.5px solid #CFCFCF;border-radius:6px;background:#fff;font:16px -apple-system,system-ui,sans-serif;padding:12px;color:#111;resize:none}
+.mini{cursor:pointer}
+.mini .sb{display:none}
+.near{margin:0 16px;background:#D4D4D4;border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.near .row{display:flex;align-items:center;gap:12px;width:100%;font-size:15px}
+.near .row small{display:block;color:#555;font-size:12px}
+.busdot{width:30px;height:30px;border-radius:50%;background:#111;display:flex;align-items:center;justify-content:center;flex:none}
+.mapbox{margin:16px 16px 18px;background:#fff;border-radius:12px;padding:12px 12px 0;overflow:hidden}
+.mapbox h6{margin:0 0 8px;font-size:18px}
+.mapbox .m{height:70px;background:linear-gradient(170deg,#D7EBB0 0 45%,#9C9C9C 45% 48%,#D7EBB0 48%)}
+.tabbar{flex:none;background:#fff;border-top:1px solid #E2E2E2;display:grid;grid-template-columns:repeat(3,1fr);padding:6px 0 16px}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:2px;color:#9A9A9A!important;font-size:14px}
+.tabbar button.on{color:#111!important;font-weight:600}
+/* ticket form card */
+.tcard{margin:4px 16px 0;border-radius:22px;overflow:hidden;position:relative;border:1.5px solid var(--ln);background:var(--card)}
+.tcard .hd{background:var(--g);color:#fff;font-size:16px;padding:12px 18px;font-variant-numeric:tabular-nums}
+.tcard .sec1{padding:14px 16px 12px}
+.rrow{display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1.5px solid #D2D2D2;width:100%}
+.bicon{width:52px;height:52px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;flex:none}
+.rrow .tx{flex:1;min-width:0}
+.rrow .tx b{font-size:20px;display:block;font-weight:600}
+.rrow .tx span{font-size:14px}
+.sel{flex:1;border:1px solid #D6D6D6;border-radius:4px;background:#F3F3F3;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;color:#666!important;font-size:17px}
+.stop{display:flex;gap:12px;align-items:flex-start;margin-top:12px;width:100%}
+.stop .ring{width:18px;height:18px;border-radius:50%;border:5px solid #888;flex:none;margin-top:2px}
+.stop .tx{flex:1;min-width:0}
+.stop .tx span{color:#888;font-size:15px;display:block}
+.stop .tx b{font-size:18px;font-weight:600;display:block;line-height:1.2;margin-top:2px}
+.notch{position:relative;height:22px}
+.notch:before,.notch:after{content:"";position:absolute;top:0;width:22px;height:22px;border-radius:50%;background:var(--pg);border:1.5px solid var(--ln)}
+.notch:before{left:-12px}.notch:after{right:-12px}
+.notch i{position:absolute;left:24px;right:24px;top:10px;border-top:1.5px dashed #BDBDBD}
+.sec2{padding:6px 16px 16px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.seg button{border:1.5px solid #D4D4D4;background:#F9F9F9;border-radius:6px;padding:9px 0;text-align:center;font-size:16px}
+.seg button.on{background:var(--g);color:#fff!important;border-color:var(--g)}
+.lbl{color:#888;font-size:15px;margin:14px 0 6px}
+.fares{display:flex;gap:10px}
+.fares button{border:1.5px solid #D4D4D4;background:#F9F9F9;border-radius:6px;width:44px;height:40px;text-align:center;font-size:16px}
+.fares button.on{border-color:var(--g);background:#E6F1E8;font-weight:700}
+.qty{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.qty .nm{font-size:17px}
+.qty .nm b{display:block;font-size:19px}
+.stp{display:flex;align-items:center;gap:14px}
+.stp button{width:28px;height:44px;border:1.5px solid #D4D4D4;border-radius:6px;background:#F9F9F9;text-align:center;color:#888!important;font-size:18px}
+.stp .v{width:48px;height:44px;border:1.5px solid #D4D4D4;border-radius:8px;background:#F9F9F9;display:flex;align-items:center;justify-content:center;font-size:20px}
+.paybar{flex:none;padding:10px 14px 22px}
+.paybtn{width:100%;background:var(--g);color:#fff!important;border-radius:6px;padding:14px 0;text-align:center!important;font-size:21px;font-weight:700;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.paybtn[disabled]{background:var(--gd);cursor:default}
+.paybtn.sm{font-size:17px;padding:12px 0}
+.linkbtn{display:block;width:100%;text-align:center!important;color:#555!important;font-size:14px;padding:10px 0 0;text-decoration:underline}
+.lrow{display:flex;gap:8px}
+.lrow .linkbtn{flex:1;width:auto}
+/* coach */
+.coach{position:absolute;left:12px;right:12px;z-index:6;background:#1E1E1E;color:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.coach .s{font-size:11px;color:#BDBDBD;letter-spacing:.04em}
+.coach b{display:block;font-size:16px;margin-top:2px}
+.coach .mr{font-family:"Noto Sans Devanagari",sans-serif;font-size:13px;color:#CFE6D3}
+.coach .act{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.coach .act button{color:#fff!important;font-size:14px}
+.coach .act .nx{background:var(--g);padding:6px 14px;border-radius:6px;font-weight:600}
+.hl{outline:3px solid #F2B33D;outline-offset:3px;border-radius:8px;position:relative;z-index:5}
+/* lists */
+.card{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin:0 16px 12px;padding:12px 14px}
+.lt{display:flex;align-items:center;gap:10px}
+.lt b{font-size:18px;font-weight:700;flex:1}
+.pill{border-radius:12px;padding:2px 10px;font-size:13px;color:#fff;background:var(--ok)}
+.pill.ex{background:#9E9E9E}
+.pill.con{background:#fff;color:#555;border:1px solid #BDBDBD}
+.lod{margin:8px 0 8px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lf{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #E3E3E3;padding-top:8px;color:var(--sub);font-variant-numeric:tabular-nums}
+.lf b{color:var(--ink);font-size:16px}
+.lf .gbtn{padding:5px 10px}
+.pagehd{margin:4px 16px 12px}
+.pagehd b{font-size:22px;display:block}
+.pagehd span{color:var(--sub);font-size:14px}
+.field{margin:0 16px}
+.field label{display:block;font-size:14px;color:#555;margin:0 0 6px}
+.field input{width:100%;border:1.5px solid #CFCFCF;border-radius:6px;background:#fff;font:17px -apple-system,system-ui,sans-serif;padding:12px;color:#111}
+.field input.bad{border-color:var(--bad)}
+.hint{margin:8px 16px 0;font-size:13px;color:var(--sub)}
+.warn{margin:12px 16px 0;background:var(--ambs);color:var(--amb);border-radius:10px;padding:10px 12px;font-size:14px}
+.steps3{margin:0 16px 14px;padding:12px 14px 12px 34px;background:#F3F8F3;border-radius:10px;font-size:14px;line-height:1.45;color:#222}
+.steps3 li{margin:3px 0}
+.fine{margin:4px 16px 0;font-size:12px;color:var(--sub)}
+.opt .tx .lu{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;color:var(--ok);background:#E6F1E8;border-radius:4px;padding:1px 6px;vertical-align:2px}
+.okbox{margin:12px 16px 0;background:#E6F1E8;color:var(--ok);border-radius:10px;padding:10px 12px;font-size:14px}
+.err{color:var(--bad);font-size:13px;margin:6px 16px 0;min-height:18px}
+.opt{display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;margin:0 16px 10px;padding:14px;width:calc(100% - 32px);border:1.5px solid transparent}
+.opt.on{border-color:var(--g)}
+.opt .lg{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex:none}
+.opt .tx{flex:1;min-width:0}
+.opt .tx b{display:block;font-size:16px;font-weight:600}
+.opt .tx span{font-size:12px;color:var(--sub)}
+.rad{width:20px;height:20px;border-radius:50%;border:2px solid #AAA;flex:none}
+.opt.on .rad{border:6px solid var(--g)}
+.amts{display:flex;gap:10px;margin:0 16px 14px}
+.amts button{flex:1;border:1.5px solid #D4D4D4;background:#fff;border-radius:8px;padding:10px 0;text-align:center;font-size:18px;font-weight:600}
+.amts button.on{border-color:var(--g);background:#E6F1E8;color:var(--ok)!important}
+.plist{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:4px 0 6px}
+.plist button{border:1.5px solid #D4D4D4;background:#F9F9F9;border-radius:8px;padding:8px 14px;font-size:17px;font-weight:600}
+.plist button.on{border-color:var(--g);background:#E6F1E8}
+.ffare{margin:12px 16px 0;border:1.5px solid var(--ln);border-radius:16px;background:var(--card);padding:12px 16px}
+.ffare .r{display:flex;justify-content:space-between;font-size:15px;color:#444;margin-top:4px;font-variant-numeric:tabular-nums}
+.ffare .r.t{font-size:18px;font-weight:700;color:#111}
+/* sheet */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:8;display:flex;align-items:flex-end}
+.sheet{background:#fff;width:100%;border-radius:18px 18px 0 0;padding:10px 16px 22px;max-height:85%;overflow-y:auto}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:#D0D0D0;margin:0 auto 10px}
+.sheet h6{margin:0 0 4px;font-size:18px}
+.sheet .sub{color:var(--sub);font-size:13px;margin-bottom:10px}
+.sheet .li{display:flex;align-items:center;gap:10px;width:100%;padding:12px 2px;border-bottom:1px solid #EEE;font-size:16px}
+.sheet .li small{color:var(--sub);font-size:12px;display:block}
+.sum{background:var(--card);border-radius:12px;padding:12px 14px;margin:6px 0 12px}
+.sum .r1{display:flex;align-items:center;gap:10px}
+.sum .r1 b{font-size:22px}
+.sum .r1 span{font-size:14px}
+.sum .od{font-size:15px;margin-top:8px;font-weight:600}
+.sum .r2{display:flex;justify-content:space-between;margin-top:8px;color:#444;font-variant-numeric:tabular-nums}
+.sum .r2 b{color:#111;font-size:18px}
+/* active ticket */
+.atop{display:flex;align-items:center;padding:6px 18px 10px;gap:20px}
+.atop .sp{flex:1}
+.atop .u{text-decoration:underline;font-size:15px}
+.tk{margin:0 16px;border-radius:22px;overflow:hidden;border:1.5px solid var(--ln);background:#fff}
+.tk .hd{background:var(--g);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;font-size:15px;font-variant-numeric:tabular-nums}
+.tk .big{display:flex;align-items:center;gap:14px;padding:14px 18px 10px}
+.tk .big b{font-size:40px;line-height:1;font-weight:800;letter-spacing:-.01em}
+.tk .big .tt span{font-size:15px;display:block}
+.tk .st{padding:4px 18px 4px}
+.tk .st div{display:flex;gap:10px;align-items:baseline;margin:6px 0}
+.tk .st span{color:#888;font-size:13px;width:38px;flex:none}
+.tk .st b{font-size:19px;line-height:1.2}
+.tk .fr{display:flex;justify-content:space-between;padding:4px 18px 14px;font-size:16px;font-variant-numeric:tabular-nums}
+.tk .fr b{font-size:20px}
+.live{background:#E6F1E8;color:var(--ok);display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font-weight:700;font-variant-numeric:tabular-nums;font-size:17px}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:8px;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}.spin{animation:none!important}}
+.tkno{font-size:12px;color:var(--sub);text-align:center;margin:10px 0 0}
+.tip{margin:12px 16px 0;background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:center}
+/* first open: language */
+.scr.lang{background:#fff}
+.langpick{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:0 24px 30px}
+.langpick .lp-mark{width:64px;height:64px;border-radius:50%;background:#FBE9E9;display:flex;align-items:center;justify-content:center;align-self:center}
+.langpick h3{margin:6px 0 10px;text-align:center;font-family:"Noto Sans Devanagari",var(--body);font-size:24px;line-height:1.3}
+.langpick h3 span{display:block;font-size:15px;font-weight:400;color:var(--sub)}
+.langpick .lp{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;border:1.5px solid #D4D4D4;border-radius:12px;padding:14px 16px;background:#fff;text-align:left}
+.langpick .lp b{font-family:"Noto Sans Devanagari",var(--body);font-size:20px}
+.langpick .lp span{font-size:13px;color:var(--sub)}
+.langpick .lp:active{border-color:var(--g);background:#E6F1E8}
+.langpick p{margin:8px 0 0;text-align:center;font-size:12px;color:var(--sub);line-height:1.5}
+.lchip{display:flex;align-items:center;gap:5px;border:1.5px solid #D4D4D4;border-radius:16px;padding:3px 10px;font-size:13px;font-weight:600}
+.welcome{margin:14px 16px 0;background:var(--g);color:#fff;border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}
+.welcome .tx{flex:1;min-width:0}
+.welcome .tx b{display:block;font-size:16px}
+.welcome .tx span{font-size:13px;opacity:.9}
+.welcome .gbtn{background:#fff;color:var(--ok)!important}
+.sheet .li .rad2{width:20px;height:20px;border-radius:50%;border:2px solid #9E9E9E;flex:none}
+.sheet .li.cur .rad2{border:6px solid var(--g)}
+.sheet .li > span:last-child small{display:block}
+/* paying */
+.payw{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px;text-align:center}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid #D6E7D9;border-top-color:var(--g);animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.payw b{font-size:20px}
+.payw p{margin:0;color:#555}
+.prow{display:flex;align-items:center;gap:16px;width:100%;padding:16px 18px;font-size:17px;border-bottom:1px solid #E3E3E3;background:#F1F1F1}
+.prow > span:last-child{flex:1}
+.prow .avatar{flex:none}
+.faq{margin:0 16px 10px;background:#fff;border-radius:12px}
+.faq button{width:100%;display:flex;justify-content:space-between;padding:14px;font-size:15px;font-weight:600;gap:10px}
+.faq p{margin:0;padding:0 14px 14px;color:#555;font-size:14px}
+.toast{position:absolute;left:16px;right:16px;bottom:92px;z-index:10;background:#222;color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;text-align:center}
+.tk .hd .mk{width:26px;height:26px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.markrow{display:flex;justify-content:space-between;align-items:center;padding:0 18px 12px;font-size:13px;color:#555}
+.markrow svg{display:inline-block;vertical-align:middle;margin-left:6px}
+.card.rec{background:#F7F7F7;box-shadow:none;border:1px solid #E0E0E0}
+.card.rec .lt b{color:#555}
+.rec .note{font-size:12px;color:#888}
+.langs{display:flex;gap:8px;justify-content:center;margin:0 0 6px}
+.langs button{border:1.5px solid #D4D4D4;border-radius:16px;padding:4px 12px;font-size:14px;background:#fff}
+.langs button.on{border-color:var(--g);background:#E6F1E8;color:var(--ok)!important;font-weight:600}
+.mrline{font-family:"Noto Sans Devanagari",sans-serif;color:var(--sub);font-size:13px}
+.fx{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:0 0 22px}
+.fx div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.fx b{font-family:var(--display);font-size:17px;line-height:1.2}
+.fx span{font-size:14px;color:var(--muted)}
+.fx em{font-style:normal;font-size:12px;color:var(--accent);font-weight:600;margin-top:auto;padding-top:4px}
+@media (max-width:1060px){.fx{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){.fx{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.fx{grid-template-columns:minmax(0,1fr)}}
+.welcome.col{flex-direction:column;align-items:stretch;gap:10px;background:#FFF6E0;color:#3A2A08}
+.welcome.col .tx span{opacity:1;color:#5C4612}
+.welcome.col .gbtn{background:var(--g);color:#fff!important;align-self:flex-start}
+.passbox{background:#FFF6E0;border:1px solid #F0D48A;border-radius:12px;padding:12px;margin:0 0 12px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:#3A2A08}
+.passbox b{font-size:15px}
+.passbox .paybtn{margin-top:4px}
+.sheet .field input{font-size:16px;padding:10px 12px}
+.stop .tx em.near-k{display:flex;align-items:center;gap:4px;font-style:normal;font-size:12px;color:#3C7E42;font-weight:600;margin-top:3px}
+.stop .tx em.near-k svg{display:inline-block}
+.sheet .li small.al{color:#3C7E42;font-weight:600}
+.solo{max-width:392px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;align-items:stretch;gap:12px}
+.solo .phone{margin:0 auto}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:360px;width:100%;margin:0 auto}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.1}
+.brand em{font-style:normal;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px;margin-left:6px;vertical-align:3px}
+.solo .about{position:relative;top:auto;right:auto}
+.seg-k{max-width:360px;width:100%;margin:4px auto -4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.rseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;max-width:360px;width:100%;margin:0 auto;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.rseg .chip{-webkit-appearance:none;appearance:none;box-shadow:none}
+.chip{display:flex;flex-direction:column;align-items:center;gap:1px;font:13px var(--body);border:0!important;background:transparent;color:var(--fg);padding:7px 4px;border-radius:9px;cursor:pointer;min-width:0}
+.chip b{font-weight:600}
+.chip small{font-size:11px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent)!important}
+.chip[aria-pressed="true"] b,.chip[aria-pressed="true"] small{color:var(--surface)}
+.chip:focus-visible,.case:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.case{align-self:center;margin-top:0;display:inline-flex;align-items:center;gap:8px;font:600 15px var(--body);color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:999px;padding:10px 18px;margin-top:4px}
+.case:hover{background:var(--accent-soft)}
+</style>
+
+<div class="solo">
+  <div class="bar">
+    <span class="brand">Apli PMPML <em>Prototype</em></span>
+    <div class="about"><button class="about-btn" id="about-btn" type="button" aria-expanded="false" aria-controls="about-pop" aria-label="About this page">i</button><div class="about-pop" id="about-pop" role="note" hidden><b>Independent product case study.</b> Not affiliated with PMPML or its app vendor.</div></div>
+  </div>
+  <div class="seg-k" id="seg-k">Start as</div>
+  <div class="rseg" role="group" aria-labelledby="seg-k">
+    <button type="button" class="chip" data-start="0" aria-pressed="true"><b>New rider</b><small>First booking</small></button>
+    <button type="button" class="chip" data-start="8" aria-pressed="false"><b>Daily rider</b><small>Morning</small></button>
+    <button type="button" class="chip" data-start="10" aria-pressed="false"><b>Daily rider</b><small>Evening</small></button>
+  </div>
+  <div class="phone"><div class="scr" id="screen"></div></div>
+  <a class="case" href="walkthrough.html">Guided walkthrough <span aria-hidden="true">→</span></a>
+  <div hidden>
+    <span id="n-k"></span><h2 id="n-h"></h2><div id="n-rows"></div><ol id="steps"></ol>
+    <button id="b-prev"></button><button id="b-next"></button><button id="b-reset"></button>
+    <button class="tab" id="tab-try"></button><button class="tab" id="tab-flow"></button>
+    <section id="p-try"></section><section id="p-flow"><div id="flow"></div></section>
+  </div>
+</div>
+
+<script>
+(function(){
+const SHOTS = {};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- icons ---------- */
+const I = {
+  globe:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>',
+  back:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg>',
+  close:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>',
+  bus:(c='#fff',s=26)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${c}"><path d="M5 4.5C5 3 7.5 2 12 2s7 1 7 2.5V17c0 .9-.5 1.6-1 2v1.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V19.5H9v1a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V19c-.6-.4-1-1.1-1-2V4.5zM7 6v5h10V6H7zm1 9.2a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm8 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg>`,
+  pencil:'<svg width="22" height="22" viewBox="0 0 24 24" fill="#111"><path d="M3 17.3V21h3.7L17.8 9.9l-3.7-3.7L3 17.3zM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.7 3.7L20.7 7z"/></svg>',
+  ticket:'<svg width="40" height="28" viewBox="0 0 40 28" fill="#111"><path d="M2 3h36v7a4 4 0 0 0 0 8v7H2v-7a4 4 0 0 0 0-8V3z"/><rect x="11" y="3" width="3" height="22" fill="#E4F0FC"/></svg>',
+  pass:'<svg width="28" height="36" viewBox="0 0 28 36" fill="#111"><rect x="2" y="5" width="24" height="30" rx="4"/><rect x="11" y="1" width="6" height="8" rx="2"/><circle cx="14" cy="17" r="4" fill="#E4F0FC"/><path d="M7 29c1-4 4-6 7-6s6 2 7 6z" fill="#E4F0FC"/></svg>',
+  yticket:'<svg width="40" height="28" viewBox="0 0 40 28"><path d="M4 7h30v14H4z" fill="#F4D774"/><path d="M8 4h28v4H8z" fill="#E6A93A"/><path d="M8 12h16M8 16h12" stroke="#D99C2E" stroke-width="1.6"/><path d="M28 7v14" stroke="#E6A93A" stroke-dasharray="2 2"/></svg>',
+  turn:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V9l-4-5M12 9l4-5M4 14l4-4M20 14l-4-4"/></svg>',
+  metro:'<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#7B4BB7" stroke-width="2.5"/><rect x="11" y="10" width="10" height="11" rx="2" stroke="#E0503C" stroke-width="2"/><path d="M12 24l2-3M20 24l-2-3" stroke="#E0503C" stroke-width="2"/></svg>',
+  search:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M15 15l6 6"/></svg>',
+  bell:'<svg width="28" height="28" viewBox="0 0 24 24" fill="#111"><path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.5-6.8V3a1.5 1.5 0 0 0-3 0v1.2A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2z"/></svg>',
+  user:'<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="7.5" r="4.5"/><path d="M3 22c0-5 4-8 9-8s9 3 9 8z"/></svg>',
+  home:(on)=>`<svg width="28" height="28" viewBox="0 0 24 24" fill="${on?'#111':'none'}" stroke="${on?'#111':'#9A9A9A'}" stroke-width="1.8"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg>`,
+  pin:(on)=>`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${on?'#111':'#9A9A9A'}" stroke-width="1.6"><path d="M12 15s5-4.5 5-8.5a5 5 0 0 0-10 0C7 10.5 12 15 12 15z"/><circle cx="12" cy="6.5" r="1.8"/><path d="M5 17c-1.5.6-2 1.2-2 2 0 1.7 4 3 9 3s9-1.3 9-3c0-.8-.5-1.4-2-2"/></svg>`,
+  help:(on)=>`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${on?'#111':'#9A9A9A'}" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01" stroke-linecap="round"/></svg>`,
+  chev:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  down:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
+  arrow:'<svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h19M14 1l6 6-6 6"/></svg>',
+  lock:'<svg width="22" height="22" viewBox="0 0 24 24" fill="#555"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#555" stroke-width="2.2"/></svg>',
+  link:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  bolt:'<svg width="22" height="22" viewBox="0 0 24 24" fill="#3C7E42"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+  ptk:'<svg width="26" height="26" viewBox="0 0 24 24" fill="#111"><path d="M2 5h20v5a2 2 0 0 0 0 4v5H2v-5a2 2 0 0 0 0-4z"/><path d="M9 7v2M9 11v2M9 15v2" stroke="#F1F1F1" stroke-width="1.6"/></svg>',
+  ppass:'<svg width="26" height="26" viewBox="0 0 24 24" fill="#111"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="9" cy="11" r="2.3" fill="#F1F1F1"/><path d="M5 17c.6-2 2-3 4-3s3.4 1 4 3z" fill="#F1F1F1"/></svg>',
+  upi:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>',
+  wallet:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3z"/><path d="M3 7l12-3v3"/><circle cx="16.5" cy="13.5" r="1.3" fill="#111"/></svg>',
+  replay:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg>',
+  hs:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 2-3 3-6 3"/></svg>',
+  share:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>',
+  locpin:'<svg width="13" height="13" viewBox="0 0 24 24" fill="#3C7E42" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>',
+  star:'<svg width="26" height="26" viewBox="0 0 24 24" fill="#111"><path d="M12 2l3 6.6 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21.2l1.5-7L2 9.4l7-.8z"/></svg>'
+};
+const SB = () => `<div class="sb"><span>${TM().sb}</span><span class="r"><svg width="17" height="11" viewBox="0 0 17 11" fill="#111"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg><svg width="24" height="11" viewBox="0 0 24 11"><rect x=".5" y=".5" width="20" height="10" rx="3" fill="none" stroke="#111" opacity=".5"/><rect x="2" y="2" width="14" height="7" rx="1.5" fill="#111"/><rect x="21.5" y="3.5" width="1.5" height="4" rx=".7" fill="#111" opacity=".5"/></svg></span></div>`;
+
+const TM = () => S.am ? {sb:'8:41', now:'08:41 AM', bk:'08:42 AM', vt:'10:42 AM', clk:'08:42:', ap:'AM'} : {sb:'7:13', now:'07:13 PM', bk:'07:14 PM', vt:'09:14 PM', clk:'07:14:', ap:'PM'};
+/* Today's mark: changes daily; the conductor's machine shows the same mark at the start of duty */
+const MARK = '<svg width="22" height="22" viewBox="0 0 16 16" aria-label="Blue triangle"><path d="M8 1.5l6.5 12h-13z" fill="#2E6FD8"/></svg>';
+
+/* ---------- example network ---------- */
+const ROUTES = {
+  '163A': ['Rakshak Nagar Phase 1','Pune Station Moledina Stand','Ruby Hall','Bund Garden','Yerawada','Shastri Nagar','Viman Nagar Corner','Kharadi Bypass','Kharadi Gaon'],
+  '235':  ['Alankar Talkies','Pune Station Moledina Stand','Ruby Hall','Bund Garden','Yerawada','Kalyani Nagar','Ramwadi','Kharadi Bypass','Kharadi Gaon'],
+  '94A':  ['Swargate','Shaniwar Wada','Shivajinagar','Ruby Hall','Bund Garden','Koregaon Park']
+};
+function fareOf(route, from, to){
+  const st = ROUTES[route]; const a = st.indexOf(from), b = st.indexOf(to);
+  if (a < 0 || b < 0 || a === b) return null;
+  const d = Math.abs(a - b);
+  return d <= 2 ? 10 : d <= 5 ? 20 : 30;
+}
+function dirOf(route, from, to){
+  const st = ROUTES[route]; const a = st.indexOf(from), b = st.indexOf(to);
+  if (a < 0) return t('Towards {0}', sn(st[st.length-1]));
+  return t('Towards {0}', sn(b >= 0 && b < a ? st[0] : st[st.length-1]));
+}
+function routesFor(from, to){ return Object.keys(ROUTES).filter(r => ROUTES[r].includes(from) && ROUTES[r].includes(to) && from !== to); }
+
+/* The rider's own app tickets: the trips they repeat */
+const APP = [
+  {d:'09 Oct', t:'07:48 PM', r:'163A', from:'Ruby Hall', to:'Kharadi Gaon', f:30, n:1, src:'App'},
+  {d:'09 Oct', t:'01:12 PM', r:'94A', from:'Shivajinagar', to:'Koregaon Park', f:20, n:1, src:'App'},
+  {d:'09 Oct', t:'08:47 AM', r:'235', from:'Kharadi Gaon', to:'Alankar Talkies', f:30, n:1, src:'App'},
+  {d:'08 Oct', t:'07:52 PM', r:'235', from:'Ruby Hall', to:'Kharadi Gaon', f:30, n:1, src:'App'},
+  {d:'08 Oct', t:'01:05 PM', r:'94A', from:'Shivajinagar', to:'Koregaon Park', f:20, n:1, src:'App'},
+  {d:'08 Oct', t:'08:52 AM', r:'235', from:'Kharadi Gaon', to:'Alankar Talkies', f:30, n:1, src:'App'},
+  {d:'07 Oct', t:'07:40 PM', r:'163A', from:'Ruby Hall', to:'Kharadi Gaon', f:30, n:1, src:'App'},
+  {d:'07 Oct', t:'08:50 AM', r:'235', from:'Kharadi Gaon', to:'Alankar Talkies', f:30, n:1, src:'App'}
+];
+
+/* Daily pass suggestion, from the rider's own days. Shown before the first ticket of the day,
+   and only when most recent days cost more than the pass: money already spent can't be saved. */
+const PASS = 70;
+function usualDay(){
+  if (!S.hist) return null;
+  const amt = {}, trips = {};
+  APP.forEach(x => { amt[x.d] = (amt[x.d]||0) + x.f*x.n; trips[x.d] = (trips[x.d]||0) + 1; });
+  const days = Object.keys(amt), over = days.filter(d => amt[d] > PASS);
+  if (over.length * 2 <= days.length) return null;
+  return {days:over.length, of:days.length, trips:Math.max(...over.map(d=>trips[d])), amt:Math.max(...over.map(d=>amt[d]))};
+}
+/* Stops near the rider, nearest first (example position: Ruby Hall in the evening, home at Kharadi Gaon in the morning) */
+const NEAR = () => S.am
+  ? [['Kharadi Gaon',90],['Kharadi Bypass',850],['Viman Nagar Corner',2100]]
+  : [['Ruby Hall',120],['Bund Garden',650],['Pune Station Moledina Stand',1400],['Shivajinagar',2600],['Alankar Talkies',2900]];
+function nearestOn(route){ const n = NEAR().find(([st]) => ROUTES[route].includes(st)); return n ? {stop:n[0], m:n[1]} : null; }
+function autoFrom(d){ if (!S.loc || !d.route || (d.from && !d.auto)) return; const n = nearestOn(d.route); if (n){ d.from = n.stop; d.auto = n.m; if (d.to === d.from) d.to = ''; } }
+const passTip = () => (S.am && !S.today.length && !S.pass) ? usualDay() : null;
+
+/* ---------- state ---------- */
+const fresh = () => ({
+  screen:'home', stack:[], coach:-1, hist:true, booked:[], today:[], am:false, q:'', loc:true,
+  app:'PhonePe', lastPay:'',
+  draft:{route:'',from:'',to:'',mode:'stop',fare:0,full:1,half:0},
+  sheet:null, ticket:null, pass:null, passType:'PMC & PCMC', passId:'4821',
+  faq:-1, toast:'', name:'Asha K', ctype:-1, cdesc:'', cErr:'', cno:0, stars:0, mdraft:{from:'',to:'',n:1}, metroT:null, timer:300, after:'', lang:'en', payAmt:0, payFor:'ticket'
+});
+let S = fresh();
+
+/* ---------- language: chosen once, used on every screen ---------- */
+const LANGS = [['mr','मराठी','ॲप मराठीत'],['hi','हिंदी','ऐप हिंदी में'],['en','English','App in English']];
+/* English text -> [Marathi, Hindi, (English if the key differs)] */
+const TR = {
+  'Home':['होम','होम'], 'Buses':['बस','बसें'], 'Help':['मदत','मदद'], 'Language':['भाषा','भाषा'], 'Notifications':['सूचना','सूचनाएँ'],
+  'Where do you want to go?':['कुठे जायचे आहे ?','कहाँ जाना है?'],
+  'First time booking?':['पहिल्यांदा तिकीट काढताय?','पहली बार टिकट ले रहे हैं?'],
+  'We’ll show you each step, on the real form.':['प्रत्येक बॉक्स आम्ही एकेक करून दाखवतो.','हर बॉक्स हम एक-एक करके दिखाएँगे.'],
+  'Start':['सुरू करा','शुरू करें'],
+  'Links on your next app payment':['पुढच्या ॲप पेमेंटला जोडला जाईल','अगले ऐप पेमेंट पर जुड़ जाएगी'],
+  'Book':['तिकीट काढा','टिकट लें'],
+  'See your conductor tickets':['कंडक्टरकडून घेतलेली तिकिटे पाहा','कंडक्टर से लिए टिकट देखें'],
+  'Pay the conductor by UPI? Add that UPI ID.':['कंडक्टरला UPI ने पैसे देता? तो UPI ID जोडा.','कंडक्टर को UPI से पैसे देते हैं? वो UPI ID जोड़ें.'],
+  'Add':['जोडा','जोड़ें'],
+  'Book again·h':['पुन्हा तिकीट','फिर से टिकट','Book again'],
+  'Book again':['पुन्हा काढा','फिर से लें'],
+  'All trips':['सगळे प्रवास','सारी यात्राएँ'],
+  'Going home':['घरी जाताना','घर जाते समय'], 'Your usual':['नेहमीचा प्रवास','रोज़ की यात्रा'], 'Your last trip':['तुमचा मागचा प्रवास','आपकी पिछली यात्रा'],
+  '{0} trips · ₹{1}':['{0} वेळा · ₹{1}','{0} बार · ₹{1}'], '{0} trip · ₹{1}':['{0} वेळा · ₹{1}','{0} बार · ₹{1}'],
+  'Which bus are you on?':['तुम्ही कोणत्या बसमध्ये आहात?','आप किस बस में हैं?'],
+  'Buy now · valid 2 hours':['आत्ताच काढा · 2 तास चालेल','अभी लें · 2 घंटे चलेगा'],
+  'Daily Pass':['डेली पास','डेली पास'], 'Last: {0}':['मागचा: {0}','पिछला: {0}'], ' · conductor':[' · कंडक्टर',' · कंडक्टर'],
+  'ID ending {0}':['ID चे शेवटचे अंक {0}','ID के आखिरी अंक {0}'],
+  'Buy today’s pass':['आजचा पास काढा','आज का पास लें'],
+  'Bus Ticket':['बस तिकीट','बस टिकट'], 'View Ticket':['तिकीट पाहा','टिकट देखें'], 'View Pass':['पास पाहा','पास देखें'],
+  'Route Time Table':['बसचे वेळापत्रक','बस टाइम टेबल'], 'Metro Ticket':['मेट्रो तिकीट','मेट्रो टिकट'],
+  'Near Me':['जवळचे स्टॉप','पास के स्टॉप'], 'Show all':['सगळे पाहा','सब देखें'], 'Nearby':['जवळपास','आसपास'],
+  'Card {0}':['कार्ड {0}','कार्ड {0}'],
+  'Ticket Details':['तिकिटाची माहिती','टिकट की जानकारी'],
+  'Select Route':['बस नंबर निवडा','बस नंबर चुनें'],
+  'Towards {0}':['{0}कडे','{0} की ओर'],
+  'Starting stop':['कुठून बसलात','कहाँ से चढ़े'], 'Ending stop':['कुठे उतरणार','कहाँ उतरेंगे'],
+  'By Fare':['भाड्यानुसार','किराये से'], 'By Ending Stop':['स्टॉपनुसार','स्टॉप से'],
+  'Ticket Price':['तिकिटाचे पैसे','टिकट का किराया'], 'Select Tickets':['किती तिकिटे','कितने टिकट'],
+  'Full':['फुल','फुल'], 'Half':['हाफ','हाफ'], 'Pay':['पैसे भरा','पेमेंट करें'], 'Pay ₹{0}':['₹{0} भरा','₹{0} पेमेंट करें'],
+  'Fewer':['कमी','कम'], 'More':['जास्त','ज़्यादा'],
+  'Step {0} of 4':['{0} / 4','{0} / 4'],
+  'Bus number':['बस नंबर','बस नंबर'],
+  'Read it on the bus before boarding, or ask the conductor or a fellow passenger.':['चढण्याआधी बसवरचा नंबर बघा, किंवा कंडक्टरला किंवा शेजारच्या प्रवाशाला विचारा.','चढ़ने से पहले बस पर लिखा नंबर देखें, या कंडक्टर या साथ वाले यात्री से पूछें.'],
+  'The stop where you got on.':['जिथे बसमध्ये चढलात तो स्टॉप.','जिस स्टॉप पर आप चढ़े.'],
+  'The stop where you get off.':['जिथे उतरणार तो स्टॉप.','जिस स्टॉप पर आप उतरेंगे.'],
+  'Check, then pay':['तपासा, मग पैसे भरा','जाँचें, फिर पेमेंट करें'],
+  'The conductor checks these by eye.':['कंडक्टर हेच बघून तपासतो.','कंडक्टर यही देखकर जाँचता है.'],
+  'Skip guide':['मदत नको','मदद नहीं चाहिए'], 'Next':['पुढे','आगे'], 'Got it':['समजलं','ठीक है'],
+  'Choose Payment App':['पेमेंट ॲप निवडा','पेमेंट ऐप चुनें'], 'Last used':['मागच्या वेळी','पिछली बार'],
+  'Other UPI app':['दुसरे UPI ॲप','दूसरा UPI ऐप'], 'your UPI app':['तुमचे UPI ॲप','आपका UPI ऐप'], 'UPI app':['UPI ॲप','UPI ऐप'],
+  'Keep ₹100 ready, no PIN (optional)':['₹100 तयार ठेवा, PIN शिवाय (हवं असेल तर)','₹100 तैयार रखें, बिना PIN (चाहें तो)'],
+  'Opening {0}':['{0} उघडत आहे','{0} खुल रहा है'],
+  'Turn on UPI Lite there, then come back':['तिथे UPI Lite चालू करा, मग परत या','वहाँ UPI Lite चालू करें, फिर वापस आएँ'],
+  'Approve the payment there, then come back':['तिथे पेमेंट पूर्ण करा, मग परत या','वहाँ पेमेंट पूरा करें, फिर वापस आएँ'],
+  'Need Help?':['मदत हवी?','मदद चाहिए?'], 'All tickets':['सगळी तिकिटे','सारे टिकट'],
+  'No active ticket.':['आत्ता कोणतेही तिकीट नाही.','अभी कोई टिकट नहीं.'], 'Book a ticket':['तिकीट काढा','टिकट लें'],
+  'Close':['बंद करा','बंद करें'], 'Back':['मागे','पीछे'],
+  'Booked {0}':['काढले {0}','बुक {0}'], 'From':['कुठून','कहाँ से'], 'To':['कुठे','कहाँ तक'],
+  '{0} Full':['{0} फुल','{0} फुल'], '{0} Half':['{0} हाफ','{0} हाफ'], 'Fare ₹{0}':['भाडे ₹{0}','किराया ₹{0}'],
+  'Valid till':['कधीपर्यंत','कब तक'], 'Today’s mark':['आजची खूण','आज का निशान'], 'Valid':['चालू','मान्य'],
+  'Ticket no. {0}':['तिकीट क्र. {0}','टिकट नं. {0}'],
+  'Show this screen to the conductor.':['ही स्क्रीन कंडक्टरला दाखवा.','यह स्क्रीन कंडक्टर को दिखाएँ.'],
+  '{0} is linked.':['{0} जोडला गेला.','{0} जुड़ गई.'],
+  'Saved. Next time this trip is one tap, under <b>Book again</b> on Home.':['सेव्ह झाले. पुढच्या वेळी होमवर <b>पुन्हा तिकीट</b> मध्ये एका टॅपवर.','सेव हो गया. अगली बार होम पर <b>फिर से टिकट</b> में एक टैप में.'],
+  'Done':['झालं','हो गया'],
+  'Your UPI ID':['तुमचा UPI ID','आपकी UPI ID'],
+  'When you pay the conductor by QR, the ticket prints your UPI ID.':['कंडक्टरला QR ने पैसे दिले की तिकिटावर तुमचा UPI ID छापला जातो.','कंडक्टर को QR से पैसे देने पर टिकट पर आपकी UPI ID छपती है.'],
+  'Use example: asha.k@okaxis':['उदाहरण वापरा: asha.k@okaxis','उदाहरण लें: asha.k@okaxis'],
+  'Find it in your UPI app, under Profile.':['तुमच्या UPI ॲपमध्ये प्रोफाइलमध्ये मिळेल.','अपने UPI ऐप में प्रोफ़ाइल में मिलेगी.'],
+  'Find my tickets':['माझी तिकिटे शोधा','मेरे टिकट खोजें'],
+  'That doesn’t look like a UPI ID. Example: name@okaxis':['हा UPI ID बरोबर वाटत नाही. उदा: name@okaxis','यह UPI ID सही नहीं लगती. जैसे: name@okaxis'],
+  'Confirm it’s you':['हे तुम्हीच ना?','क्या यह आप ही हैं?'],
+  'Show your conductor tickets?':['कंडक्टरची तिकिटे दाखवू?','कंडक्टर वाले टिकट दिखाएँ?'],
+  'You paid for an app ticket from this UPI ID.':['या UPI ID ने तुम्ही ॲपमध्ये तिकीट काढले आहे.','आपने इस UPI ID से ऐप में टिकट लिया है.'],
+  'App ticket':['ॲप तिकीट','ऐप टिकट'], 'Paid from {0}':['{0} ने भरले','{0} से भरा'],
+  'Tap Yes and your trips from the past 7 days appear now.':['"हो" दाबा, मागच्या 7 दिवसांचे प्रवास लगेच दिसतील.','"हाँ" दबाएँ, पिछले 7 दिनों की यात्राएँ अभी दिखेंगी.'],
+  'Yes':['हो','हाँ'],
+  'Buy one ticket here':['इथे एक तिकीट काढा','यहाँ एक टिकट लें'],
+  'Pay from {0} and your conductor trips appear.':['{0} ने पैसे भरा, मग कंडक्टरची तिकिटे दिसतील.','{0} से पेमेंट करें, फिर कंडक्टर वाले टिकट दिखेंगे.'],
+  'Why?':['का?','क्यों?'],
+  'Paper tickets carry your UPI ID. Only your UPI PIN can pay from it.':['कागदी तिकिटावर तुमचा UPI ID असतो. पण त्यातून पैसे फक्त तुमच्या PIN ने भरता येतात.','कागज़ के टिकट पर आपकी UPI ID होती है. पर उससे पेमेंट सिर्फ आपके PIN से होता है.'],
+  'An app ticket stays valid about 2 hours, so you can book at the stop.':['ॲप तिकीट सुमारे 2 तास चालते, म्हणून स्टॉपवरच काढू शकता.','ऐप टिकट करीब 2 घंटे चलता है, इसलिए स्टॉप पर ही ले सकते हैं.'],
+  'Book a ticket now':['आत्ता तिकीट काढा','अभी टिकट लें'], 'Later':['नंतर','बाद में'],
+  'Your conductor tickets':['कंडक्टरची तिकिटे','कंडक्टर वाले टिकट'],
+  '{0} found for {1} · past 7 days':['{1}: {0} मिळाली · मागचे 7 दिवस','{1}: {0} मिले · पिछले 7 दिन'],
+  'From conductor':['कंडक्टरकडून','कंडक्टर से'],
+  'Record, not a ticket':['फक्त नोंद, तिकीट नाही','सिर्फ रिकॉर्ड, टिकट नहीं'], 'Record, not a pass':['फक्त नोंद, पास नाही','सिर्फ रिकॉर्ड, पास नहीं'],
+  'Not my trip':['हा माझा प्रवास नाही','यह मेरी यात्रा नहीं'],
+  'Your paper ticket was the ticket for that ride.':['त्या प्रवासासाठी कागदी तिकीटच तुमचे तिकीट होते.','उस यात्रा का टिकट आपका कागज़ वाला टिकट ही था.'],
+  'Go to Home':['होमवर जा','होम पर जाएँ'], 'Hidden from your trips':['तुमच्या प्रवासातून काढले','आपकी यात्राओं से हटाया'],
+  'Expired':['संपले','खत्म'], 'Conductor':['कंडक्टर','कंडक्टर'],
+  'Missing your conductor tickets?':['कंडक्टरची तिकिटे दिसत नाहीत?','कंडक्टर वाले टिकट नहीं दिख रहे?'], 'Add your UPI ID':['तुमचा UPI ID जोडा','अपनी UPI ID जोड़ें'],
+  'Select pass type':['पासचा प्रकार निवडा','पास का प्रकार चुनें'], 'All Route':['सगळे रूट','सभी रूट'],
+  'Last 4 digits of Aadhaar or PAN':['आधार किंवा PAN चे शेवटचे 4 अंक','आधार या PAN के आखिरी 4 अंक'],
+  'Saved from your last pass':['मागच्या पासवरून घेतले','पिछले पास से लिया'],
+  'Final Fare':['एकूण','कुल'], 'Pass':['पास','पास'], 'Payment fee':['पेमेंट चार्ज','पेमेंट चार्ज'],
+  'Carry the ID with these digits.':['हे अंक असलेले ID सोबत ठेवा.','इन अंकों वाली ID साथ रखें.'],
+  'No active pass.':['आत्ता कोणताही पास नाही.','अभी कोई पास नहीं.'], 'Buy a pass':['पास काढा','पास लें'],
+  'Valid on {0}':['{0} ला चालेल','{0} को चलेगा'], 'Aadhaar/PAN ending {0}':['आधार/PAN शेवटचे अंक {0}','आधार/PAN आखिरी अंक {0}'],
+  'Paid':['भरले','भरा'], 'Show this and your ID to the conductor.':['हे आणि तुमचे ID कंडक्टरला दाखवा.','यह और अपनी ID कंडक्टर को दिखाएँ.'],
+  'Keep ₹100 ready':['₹100 तयार ठेवा','₹100 तैयार रखें'], 'Optional: skip the PIN':['हवं असेल तर: PIN शिवाय','चाहें तो: बिना PIN'],
+  'Paying with your UPI app and PIN keeps working as it does.':['UPI ॲप आणि PIN ने पेमेंट नेहमीसारखे चालूच राहील.','UPI ऐप और PIN से पेमेंट पहले जैसा चलता रहेगा.'],
+  'Turn on <b>UPI Lite</b> in your UPI app. It’s part of that app, run by your bank.':['तुमच्या UPI ॲपमध्ये <b>UPI Lite</b> चालू करा. ते त्या ॲपचाच भाग आहे, तुमची बँक चालवते.','अपने UPI ऐप में <b>UPI Lite</b> चालू करें. यह उसी ऐप का हिस्सा है, आपका बैंक चलाता है.'],
+  'Add ₹100 there once, with your PIN.':['तिथे एकदा PIN टाकून ₹100 भरा.','वहाँ एक बार PIN डालकर ₹100 डालें.'],
+  'Bus fares then go through with no PIN.':['मग बसचे पैसे PIN शिवाय जातात.','फिर बस का किराया बिना PIN के जाता है.'],
+  'Your UPI app':['तुमचे UPI ॲप','आपका UPI ऐप'],
+  'UPI Lite pays up to ₹1,000 at a time and needs internet, like any UPI payment.':['UPI Lite ने एका वेळी ₹1,000 पर्यंत भरता येतात. इतर UPI सारखेच इंटरनेट लागते.','UPI Lite से एक बार में ₹1,000 तक भर सकते हैं. बाकी UPI की तरह इंटरनेट चाहिए.'],
+  'Open {0}':['{0} उघडा','{0} खोलें'], 'Not now':['आत्ता नको','अभी नहीं'],
+  'UPI Lite, in {0}':['{0} मध्ये UPI Lite','{0} में UPI Lite'],
+  'Once it’s on there, bus fares go through with no PIN. Nothing changes in this app.':['तिथे चालू केलं की बसचे पैसे PIN शिवाय जातात. या ॲपमध्ये काहीच बदलत नाही.','वहाँ चालू होने पर बस का किराया बिना PIN जाता है. इस ऐप में कुछ नहीं बदलता.'],
+  'My Profile':['माझे प्रोफाइल','मेरी प्रोफ़ाइल'], 'Tap here to update your profile':['प्रोफाइल बदलण्यासाठी इथे दाबा','प्रोफ़ाइल बदलने के लिए यहाँ दबाएँ'],
+  'My Tickets':['माझी तिकिटे','मेरे टिकट'], 'My Passes':['माझे पास','मेरे डेली पास'], 'UPI IDs':['UPI ID','UPI ID'],
+  'Add to see conductor tickets':['कंडक्टरची तिकिटे पाहण्यासाठी जोडा','कंडक्टर वाले टिकट देखने के लिए जोड़ें'],
+  'Optional · UPI Lite, no PIN':['हवं असेल तर · UPI Lite, PIN शिवाय','चाहें तो · UPI Lite, बिना PIN'],
+  'Book with help':['मदतीने तिकीट काढा','मदद के साथ टिकट लें'], 'Each box explained, one at a time':['प्रत्येक बॉक्स, एकेक करून','हर बॉक्स, एक-एक करके'],
+  'Complaints':['तक्रार','शिकायत'], 'Share App':['ॲप शेअर करा','ऐप शेयर करें'], 'Rate Us':['रेटिंग द्या','रेटिंग दें'],
+  'App version : 1.5.0':['ॲप व्हर्जन : 1.5.0','ऐप वर्ज़न : 1.5.0'],
+  'Edit Profile':['प्रोफाइल बदला','प्रोफ़ाइल बदलें'], 'Name':['नाव','नाम'], 'Mobile number':['मोबाईल नंबर','मोबाइल नंबर'],
+  'Your login number can’t be changed here.':['लॉगिनचा नंबर इथे बदलता येत नाही.','लॉगिन नंबर यहाँ नहीं बदल सकते.'],
+  'App language':['ॲपची भाषा','ऐप की भाषा'], 'Save':['सेव्ह करा','सेव करें'], 'Profile saved':['प्रोफाइल सेव्ह झाले','प्रोफ़ाइल सेव हो गई'],
+  'The whole app changes to this language.':['पूर्ण ॲप या भाषेत दिसेल.','पूरा ऐप इसी भाषा में दिखेगा.'],
+  'What went wrong?':['काय अडचण आली?','क्या दिक्कत हुई?'],
+  'Money deducted, no ticket':['पैसे कापले, तिकीट नाही','पैसे कटे, टिकट नहीं'], 'Conductor behaviour':['कंडक्टरचे वागणे','कंडक्टर का बर्ताव'],
+  'Bus did not stop':['बस थांबली नाही','बस नहीं रुकी'], 'App not working':['ॲप चालत नाही','ऐप नहीं चल रहा'], 'Something else':['दुसरे काही','कुछ और'],
+  'Tell us more':['अजून सांगा','और बताएँ'], 'Route, stop and time':['बस नंबर, स्टॉप आणि वेळ','बस नंबर, स्टॉप और समय'],
+  'Choose what went wrong.':['काय अडचण आली ते निवडा.','क्या दिक्कत हुई, वो चुनें.'], 'Submit':['पाठवा','भेजें'],
+  'Complaint registered':['तक्रार नोंदवली','शिकायत दर्ज हुई'],
+  'No. PMP-C-{0}. Keep this number to follow up.':['क्र. PMP-C-{0}. नंतर विचारण्यासाठी हा नंबर जपून ठेवा.','नं. PMP-C-{0}. आगे पूछने के लिए यह नंबर संभालकर रखें.'],
+  'Share Apli PMPML':['आपली PMPML शेअर करा','आपली PMPML शेयर करें'], 'Send this to family and friends':['घरच्यांना आणि मित्रांना पाठवा','घर वालों और दोस्तों को भेजें'],
+  'Book your PMPML bus ticket on your phone. Get the Apli PMPML app on Google Play or the App Store.':['PMPML बसचे तिकीट फोनवर काढा. Google Play किंवा App Store वरून आपली PMPML ॲप घ्या.','PMPML बस का टिकट फ़ोन पर लें. Google Play या App Store से आपली PMPML ऐप लें.'],
+  'Copy message':['मेसेज कॉपी करा','मैसेज कॉपी करें'], 'Message copied':['मेसेज कॉपी झाला','मैसेज कॉपी हो गया'], 'Selected. Copy it from here.':['निवडले. इथून कॉपी करा.','चुन लिया. यहाँ से कॉपी करें.'],
+  'Rate Apli PMPML':['आपली PMPML ला रेटिंग द्या','आपली PMPML को रेटिंग दें'], 'How was booking today?':['आज तिकीट काढणे कसे वाटले?','आज टिकट लेना कैसा रहा?'],
+  'Thanks for rating':['रेटिंगसाठी धन्यवाद','रेटिंग के लिए धन्यवाद'], '{0} stars':['{0} स्टार','{0} स्टार'],
+  'From station':['कुठून (स्टेशन)','कहाँ से (स्टेशन)'], 'To station':['कुठे (स्टेशन)','कहाँ तक (स्टेशन)'], 'Tickets':['तिकिटे','टिकट'],
+  'Metro booking is unchanged. Fares shown are examples.':['मेट्रो बुकिंग आहे तसेच. दाखवलेले भाडे उदाहरण आहे.','मेट्रो बुकिंग वैसी ही है. दिखाया किराया उदाहरण है.'],
+  'Pune Metro, Purple Line':['पुणे मेट्रो, पर्पल लाईन','पुणे मेट्रो, पर्पल लाइन'], 'Pune Metro | Booked {0}':['पुणे मेट्रो | काढले {0}','पुणे मेट्रो | बुक {0}'],
+  '{0} Tickets':['{0} तिकिटे','{0} टिकट'], '{0} Ticket':['{0} तिकीट','{0} टिकट'],
+  'Scan this at the Metro gate.':['मेट्रो गेटवर हे स्कॅन करा.','मेट्रो गेट पर इसे स्कैन करें.'],
+  'Your conductor tickets can live here':['कंडक्टरची तिकिटे इथे पाहता येतील','कंडक्टर वाले टिकट यहाँ देख सकते हैं'],
+  'Add your UPI ID once.':['एकदाच UPI ID जोडा.','एक बार UPI ID जोड़ें.'], 'Add UPI ID':['UPI ID जोडा','UPI ID जोड़ें'],
+  '{0} stops':['{0} स्टॉप','{0} स्टॉप'],
+  'Paid but no ticket?':['पैसे गेले पण तिकीट नाही?','पैसे गए पर टिकट नहीं?'],
+  'Open All tickets. If it still shows nothing after 10 minutes, raise a complaint with the UPI Ref No.':['सगळी तिकिटे उघडा. 10 मिनिटांनीही काही दिसले नाही तर UPI Ref No. सोबत तक्रार करा.','सारे टिकट खोलें. 10 मिनट बाद भी कुछ न दिखे तो UPI Ref No. के साथ शिकायत करें.'],
+  'Why add my UPI ID?':['UPI ID का जोडायचा?','UPI ID क्यों जोड़ें?'],
+  'To see tickets you paid the conductor for, and book them again in one tap.':['कंडक्टरला पैसे देऊन घेतलेली तिकिटे पाहायला, आणि एका टॅपवर पुन्हा काढायला.','कंडक्टर को पैसे देकर लिए टिकट देखने और एक टैप में फिर से लेने के लिए.'],
+  'Is my UPI ID safe?':['माझा UPI ID सुरक्षित आहे का?','क्या मेरी UPI ID सुरक्षित है?'],
+  'Your trips show only after you pay once from that UPI ID in the app.':['त्या UPI ID ने ॲपमध्ये एकदा पैसे भरल्यावरच तुमचे प्रवास दिसतात.','उस UPI ID से ऐप में एक बार पेमेंट करने के बाद ही आपकी यात्राएँ दिखती हैं.'],
+  'What is UPI Lite?':['UPI Lite म्हणजे काय?','UPI Lite क्या है?'],
+  'A small balance in your own UPI app, kept by your bank. Payments up to ₹1,000 need no PIN.':['तुमच्या UPI ॲपमधली छोटी रक्कम, तुमची बँक सांभाळते. ₹1,000 पर्यंतच्या पेमेंटला PIN लागत नाही.','आपके UPI ऐप में छोटा बैलेंस, आपका बैंक संभालता है. ₹1,000 तक के पेमेंट पर PIN नहीं लगता.'],
+  'Raise a complaint':['तक्रार करा','शिकायत करें'],
+  'Read it on the bus, or ask the conductor':['बसवरचा नंबर बघा, किंवा कंडक्टरला विचारा','बस पर नंबर देखें, या कंडक्टर से पूछें'],
+  'Stops on {0}':['{0} चे स्टॉप','{0} के स्टॉप'], 'All stops':['सगळे स्टॉप','सारे स्टॉप'],
+  'Valid till {0} · this bus number only':['{0} पर्यंत चालेल · फक्त या नंबरच्या बसमध्ये','{0} तक चलेगा · सिर्फ इसी नंबर की बस में'],
+  'Pay ₹{0} · {1}':['₹{0} भरा · {1}','₹{0} पेमेंट · {1}'],
+  'Other ways to pay':['दुसऱ्या प्रकारे भरा','दूसरे तरीके से भरें'], 'Change stops':['स्टॉप बदला','स्टॉप बदलें'],
+  'Today’s pass':['आजचा पास','आज का पास'], 'Same as last time · no ID to say out loud':['मागच्या वेळेसारखाच · ID मोठ्याने सांगायला नको','पिछली बार जैसा · ID ज़ोर से बोलना नहीं पड़ेगा'],
+  '₹70 pass + ₹0.83 payment fee':['₹70 पास + ₹0.83 पेमेंट चार्ज','₹70 पास + ₹0.83 पेमेंट चार्ज'],
+  'Change pass type':['पासचा प्रकार बदला','पास का प्रकार बदलें'],
+  'Tap the bus number you’re on':['तुम्ही ज्या बसमध्ये आहात तो नंबर दाबा','जिस बस में हैं उसका नंबर दबाएँ'],
+  '12 Oct, 2026':['12 ऑक्टो, 2026','12 अक्टू, 2026'],
+  'Going to work':['कामावर जाताना','काम पर जाते समय'],
+  'Nearest stop to you':['तुमच्या जवळचा स्टॉप','आपके पास का स्टॉप'],
+  'Filled from your location. Tap it if you’re at a different stop.':['तुमच्या लोकेशनवरून भरले. दुसऱ्या स्टॉपवर असाल तर त्यावर दाबा.','आपकी लोकेशन से भरा. किसी दूसरे स्टॉप पर हैं तो इसे दबाएँ.'],
+  'The stop where you get off. Type it the way you’d say it to the conductor.':['जिथे उतरणार तो स्टॉप. कंडक्टरला सांगता तसेच नाव लिहा.','जिस स्टॉप पर उतरेंगे. कंडक्टर को जैसे बोलते हैं वैसे ही लिखें.'],
+  'How does the app know my starting stop?':['ॲपला माझा स्टॉप कसा कळतो?','ऐप को मेरा स्टॉप कैसे पता चलता है?'],
+  'If location is on, the app fills in the stop on your bus’s route nearest to you. Tap it to change it.':['लोकेशन चालू असेल तर तुमच्या बसच्या मार्गावरचा सगळ्यात जवळचा स्टॉप ॲप भरते. बदलायचा असेल तर त्यावर दाबा.','लोकेशन चालू हो तो आपकी बस के रूट पर सबसे पास का स्टॉप ऐप भरता है. बदलना हो तो उसे दबाएँ.'],
+  'Type the stop as you’d say it':['तुम्ही जसे म्हणता तसे स्टॉपचे नाव लिहा','स्टॉप का नाम जैसे बोलते हैं वैसे लिखें'],
+  'e.g. station, रेल्वे, kharadi':['उदा. रेल्वे, station, खराडी','जैसे रेल्वे, station, खराडी'],
+  'Also called “{0}”':['याला “{0}” असेही म्हणतात','इसे “{0}” भी कहते हैं'],
+  'No stop found. Try another name.':['स्टॉप सापडला नाही. दुसरे नाव लिहून पाहा.','स्टॉप नहीं मिला. दूसरा नाम लिखकर देखें.'],
+  'The stop where you get on. Type it the way you’d say it to the conductor.':['जिथे बसमध्ये चढता तो स्टॉप. कंडक्टरला सांगता तसेच नाव लिहा.','जिस स्टॉप पर चढ़ते हैं. कंडक्टर को जैसे बोलते हैं वैसे ही लिखें.'],
+  'Most days, a pass costs less':['बहुतेक दिवशी पास स्वस्त पडतो','ज़्यादातर दिन पास सस्ता पड़ता है'],
+  'On {0} of your last {1} days you took {2} buses, ₹{3} in all. A daily pass is ₹70 and covers every bus till midnight.':['मागच्या {1} पैकी {0} दिवशी तुम्ही {2} बसने गेलात, एकूण ₹{3}. डेली पास ₹70 चा आहे आणि रात्री 12 पर्यंत सगळ्या बसमध्ये चालतो.','पिछले {1} में से {0} दिन आपने {2} बसें लीं, कुल ₹{3}. डेली पास ₹70 का है और रात 12 बजे तक सारी बसों में चलता है.'],
+  'Buy today’s pass · ₹70':['आजचा पास काढा · ₹70','आज का पास लें · ₹70'],
+  'Any bus, all day':['कोणतीही बस, दिवसभर','कोई भी बस, पूरे दिन'],
+  'Today':['आज','आज'],
+  'No new notifications':['नवीन सूचना नाहीत','कोई नई सूचना नहीं'],
+  'How does Book again work?':['पुन्हा तिकीट कसे चालते?','फिर से टिकट कैसे काम करता है?'],
+  'Every ticket you buy in the app is saved. Your usual trips show on Home: tap the bus number you’re on, then pay.':['ॲपमध्ये काढलेले प्रत्येक तिकीट सेव्ह होते. नेहमीचे प्रवास होमवर दिसतात: तुम्ही ज्या बसमध्ये आहात तो नंबर दाबा, मग पैसे भरा.','ऐप में लिया हर टिकट सेव होता है. रोज़ की यात्राएँ होम पर दिखती हैं: जिस बस में हैं उसका नंबर दबाएँ, फिर पेमेंट करें.'],
+  'Why does the app suggest a daily pass?':['ॲप डेली पास का सुचवते?','ऐप डेली पास क्यों सुझाता है?'],
+  'When your usual day costs more than ₹70 in tickets, a pass costs less. The app tells you before your first bus, not after.':['तुमच्या नेहमीच्या दिवसाची तिकिटे ₹70 पेक्षा जास्त होत असतील तर पास स्वस्त पडतो. ॲप हे पहिल्या बसआधी सांगते, नंतर नाही.','जब आपके रोज़ के टिकट ₹70 से ज़्यादा होते हैं, तब पास सस्ता पड़ता है. ऐप यह पहली बस से पहले बताता है, बाद में नहीं.'],
+  'Can I search stops in Marathi or Hindi?':['स्टॉप मराठी किंवा हिंदीत शोधता येतात का?','क्या स्टॉप मराठी या हिंदी में खोज सकते हैं?'],
+  'Yes. Type the name the way you say it, in any script: “station”, “रेल्वे” or “kharadi” all work.':['हो. तुम्ही जसे म्हणता तसे, कोणत्याही लिपीत लिहा: “station”, “रेल्वे” किंवा “kharadi” सगळे चालते.','हाँ. जैसे बोलते हैं वैसे, किसी भी लिपि में लिखें: “station”, “रेल्वे” या “kharadi” सब चलता है.']
+};
+const t = (k, ...a) => { const r = TR[k]; let s = r ? (S.lang==='mr' ? r[0] : S.lang==='hi' ? r[1] : (r[2] || k)) : k; a.forEach((v,i) => { s = s.split('{'+i+'}').join(v); }); return s; };
+/* Stop and station names as PMPML and Pune Metro write them in Marathi; Hindi uses the same Devanagari names */
+const STOPS = {
+  'Rakshak Nagar Phase 1':'रक्षक नगर फेज 1','Pune Station Moledina Stand':'पुणे स्टेशन मोलेदिना स्टँड','Ruby Hall':'रुबी हॉल','Bund Garden':'बंड गार्डन',
+  'Yerawada':'येरवडा','Shastri Nagar':'शास्त्री नगर','Viman Nagar Corner':'विमान नगर कॉर्नर','Kharadi Bypass':'खराडी बायपास','Kharadi Gaon':'खराडी गाव',
+  'Alankar Talkies':'अलंकार टॉकीज','Kalyani Nagar':'कल्याणी नगर','Ramwadi':'रामवाडी','Swargate':'स्वारगेट','Shaniwar Wada':'शनिवार वाडा',
+  'Shivajinagar':'शिवाजीनगर','Koregaon Park':'कोरेगाव पार्क','PCMC':'पीसीएमसी','Sant Tukaram Nagar':'संत तुकाराम नगर','Bhosari (Nashik Phata)':'भोसरी (नाशिक फाटा)',
+  'Kasarwadi':'कासारवाडी','Phugewadi':'फुगेवाडी','Dapodi':'दापोडी','Bopodi':'बोपोडी','Shivaji Nagar':'शिवाजी नगर','Civil Court':'सिव्हिल कोर्ट',
+  'Budhwar Peth':'बुधवार पेठ','Mandai':'मंडई'
+};
+const sn = s => S.lang !== 'en' && STOPS[s] ? STOPS[s] : s;
+/* Names riders actually say, in any script, pointing to the stop as PMPML lists it */
+const ALIAS = {
+  'Pune Station Moledina Stand':['railway station','pune station','station','rly station','रेल्वे स्टेशन','पुणे स्टेशन','स्टेशन','moledina'],
+  'Kharadi Gaon':['kharadi','kharadi village','खराडी','खराडी गाव'],
+  'Kharadi Bypass':['kharadi bypass','bypass','बायपास'],
+  'Ruby Hall':['ruby','ruby hall clinic','रुबी'],
+  'Bund Garden':['bundgarden','बंडगार्डन'],
+  'Yerawada':['yerwada','yeravda','येरवडा'],
+  'Viman Nagar Corner':['viman nagar','vimannagar','विमाननगर'],
+  'Alankar Talkies':['alankar','alankar chowk','अलंकार'],
+  'Kalyani Nagar':['kalyaninagar','कल्याणीनगर'],
+  'Shivajinagar':['shivaji nagar','shivajinagar st stand','शिवाजीनगर'],
+  'Koregaon Park':['kp','koregaon','कोरेगाव'],
+  'Swargate':['swargate depot','स्वारगेट'],
+  'Shaniwar Wada':['shaniwarwada','शनिवारवाडा'],
+  'Rakshak Nagar Phase 1':['rakshak nagar','रक्षक नगर'],
+  'Shastri Nagar':['shastrinagar','शास्त्रीनगर'],
+  'Ramwadi':['ramwadi jakat naka','रामवाडी']
+};
+const norm = s => String(s).toLowerCase().replace(/[\s.\-()]+/g,'');
+function stopMatch(stop, q){
+  const n = norm(q); if (!n) return {ok:true};
+  if (norm(stop).includes(n) || (STOPS[stop] && norm(STOPS[stop]).includes(n))) return {ok:true};
+  const a = (ALIAS[stop]||[]).find(x => norm(x).includes(n) || (n.length >= 4 && n.includes(norm(x))));
+  return a ? {ok:true, via:a} : {ok:false};
+}
+function stopList(){
+  const sh = S.sheet, d = S.draft; if (!sh) return '';
+  const base = d.route ? ROUTES[d.route] : [...new Set(Object.values(ROUTES).flat())];
+  const list = base.filter(s => sh.kind === 'to' ? s !== d.from : true).map(s => [s, stopMatch(s, S.q)]).filter(x => x[1].ok);
+  if (!list.length) return `<p class="sub" style="padding:12px 2px">${t('No stop found. Try another name.')}</p>`;
+  return list.map(([s,m]) => `<button class="li" data-act="pick" data-arg="${sh.kind}|${esc(s)}"><span class="ring" style="width:14px;height:14px;border:4px solid #888;border-radius:50%;flex:none"></span><span>${snBoth(s)}${m.via?`<small class="al">${t('Also called “{0}”', esc(m.via))}</small>`:''}</span></button>`).join('');
+}
+/* In lists, a Marathi or Hindi stop name keeps the English one underneath, to match either board */
+const snBoth = s => S.lang !== 'en' && STOPS[s] ? `${esc(STOPS[s])}<small>${esc(s)}</small>` : esc(s);
+const dt = d => S.lang === 'en' ? d : d.replace('Oct', S.lang === 'mr' ? 'ऑक्टो' : 'अक्टू');
+const ptype = p => p === 'All Route' ? t('All Route') : p;
+const langName = () => LANGS.find(l => l[0] === S.lang)[1];
+
+/* Usual trips: group the rider's own tickets by stop pair, the right direction first for the time of day */
+function usual(){
+  const src = (S.hist ? APP : []).concat(S.booked);
+  const m = new Map();
+  src.forEach(x => {
+    const k = x.from + '|' + x.to;
+    if (!m.has(k)) m.set(k, {from:x.from, to:x.to, f:x.f, count:0, last:x});
+    m.get(k).count++;
+  });
+  const arr = [...m.values()].map(g => ({...g, routes:routesFor(g.from, g.to)}));
+  const home = 'Kharadi Gaon';
+  arr.sort((a,b) => (S.am ? (b.from===home) - (a.from===home) : (b.to===home) - (a.to===home)) || b.count - a.count);
+  return arr.slice(0, 3);
+}
+
+/* ---------- screens ---------- */
+const V = {};
+const head = (title, extra='') => `${SB()}<div class="hbar"><button data-act="back" aria-label="${t('Back')}">${I.back}</button><h4>${title}</h4>${extra}</div>`;
+const headW = (title, bold) => `${SB()}<div class="hbar white"><button data-act="back" aria-label="${t('Back')}">${I.back}</button><h4 class="${bold?'b':''}">${title}</h4></div>`;
+const mmss = s => String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+const tabbar = on => `<nav class="tabbar"><button class="${on==='home'?'on':''}" data-act="go" data-arg="home">${I.home(on==='home')}${t('Home')}</button><button class="${on==='buses'?'on':''}" data-act="go" data-arg="buses">${I.pin(on==='buses')}${t('Buses')}</button><button class="${on==='help'?'on':''}" data-act="go" data-arg="help">${I.help(on==='help')}${t('Help')}</button></nav>`;
+const closeBar = (all) => `${SB()}<div class="atop"><button data-act="home" aria-label="${t('Close')}">${I.close}</button><span class="sp"></span><button class="u" data-act="go" data-arg="help">${t('Need Help?')}</button>${all?`<button class="u" data-act="go" data-arg="alltickets">${t('All tickets')}</button>`:''}</div>`;
+
+/* First open: one question, in all three scripts, then the whole app follows the answer */
+V.lang = () => `${SB()}<div class="langpick"><div class="lp-mark">${I.bus('#C33',34)}</div><h3>भाषा निवडा<span>भाषा चुनें · Choose your language</span></h3>
+  ${LANGS.map(([k,n,s]) => `<button class="lp" data-act="pickLang" data-arg="${k}"><b>${n}</b><span>${s}</span></button>`).join('')}
+  <p>नंतर प्रोफाइलमध्ये बदलता येईल · बाद में प्रोफ़ाइल में बदल सकते हैं · You can change it later in Profile</p></div>`;
+
+V.home = () => {
+  const u = usual();
+  let h = `${SB()}<div class="hometop"><div class="mark" aria-label="PMPML">${I.bus('#C33',24)}</div><div class="sp"></div><button class="lchip" data-act="sheet" data-arg="lang" aria-label="${t('Language')}">${I.globe}${langName()}</button><button data-act="go" data-arg="notif" aria-label="${t('Notifications')}">${I.bell}</button><button class="avatar" data-act="go" data-arg="profile" aria-label="${t('My Profile')}">${I.user}</button></div><div class="body" id="hb">`;
+  h += `<div class="search"><button class="pill" data-act="go" data-arg="buses">${I.search}${t('Where do you want to go?')}</button></div>`;
+  if (!u.length) h += `<div class="welcome"><div class="tx"><b>${t('First time booking?')}</b><span>${t('We’ll show you each step, on the real form.')}</span></div><button class="gbtn" data-act="guided">${t('Start')}</button></div>`;
+  const tip = passTip();
+  if (tip) h += `<div class="welcome col"><div class="tx"><b>${t('Most days, a pass costs less')}</b><span>${t('On {0} of your last {1} days you took {2} buses, ₹{3} in all. A daily pass is ₹70 and covers every bus till midnight.', tip.days, tip.of, tip.trips, tip.amt)}</span></div><button class="gbtn" data-act="quickpass">${t('Buy today’s pass · ₹70')}</button></div>`;
+  if (u.length) {
+    h += `<div class="sec"><h5>${t('Book again·h')}</h5><button class="lnk" data-act="go" data-arg="alltickets">${t('All trips')}</button></div>`;
+    h += `<div class="car" id="tripcar">`;
+    u.forEach((g,i) => {
+      const lbl = S.hist ? (i===0 ? (S.am ? t('Going to work') : t('Going home')) : t('Your usual')) : t('Your last trip');
+      h += `<div class="trip" data-act="tripcard" data-arg="${i}"><div class="top"><span>${lbl}</span><span class="tag">${t(g.count>1?'{0} trips · ₹{1}':'{0} trip · ₹{1}', g.count, g.f)}</span></div>
+        <div class="od">${esc(sn(g.from))} ${I.arrow} ${esc(sn(g.to))}</div>
+        <div class="rt"><span class="k">${g.routes.length>1?t('Which bus are you on?'):t('Buy now · valid 2 hours')}</span>${g.routes.map(r => `<button class="rchip" data-act="quick" data-arg="${i}|${r}">${r}</button>`).join('')}</div></div>`;
+    });
+    const showPass = S.hist;
+    if (showPass) h += `<div class="trip" data-act="quickpass"><div class="top"><span>${t('Daily Pass')}</span><span class="tag">${t('Any bus, all day')}</span></div><div class="od">PMC &amp; PCMC</div><div class="meta">₹70 · ${t('ID ending {0}', S.passId)}</div><div class="rt"><button class="gbtn" data-act="quickpass">${t('Buy today’s pass')}</button></div></div>`;
+    const n = u.length + (showPass ? 1 : 0);
+    h += `</div>${n > 1 ? `<div class="dots" id="tripdots">${Array.from({length:n}).map((_,i)=>`<i class="${i===0?'on':''}" data-act="dot" data-arg="${i}" role="button" aria-label="${t('Card {0}', i+1)}"></i>`).join('')}</div>` : ''}`;
+  }
+  h += `<div class="tiles2"><button class="tile" data-act="newticket"><div class="t">${I.ticket}</div><span>${t('Bus Ticket')}</span></button><button class="tile" data-act="go" data-arg="pass"><div class="t">${I.pass}</div><span>${t('Daily Pass')}</span></button></div>`;
+  h += `<div class="tiles4"><button class="tile" data-act="viewticket"><div class="t">${I.yticket}</div><span>${t('View Ticket')}</span></button><button class="tile" data-act="viewpass"><div class="t">${I.yticket}</div><span>${t('View Pass')}</span></button><button class="tile" data-act="go" data-arg="buses"><div class="t">${I.turn}</div><span>${t('Route Time Table')}</span></button><button class="tile" data-act="metro"><div class="t">${I.metro}</div><span>${t('Metro Ticket')}</span></button></div>`;
+  h += `<div class="sec"><h5>${t('Near Me')}</h5><button class="lnk" data-act="go" data-arg="buses">${t('Show all')}</button></div>
+    <div class="near"><button class="row" data-act="fromstop" data-arg="Ruby Hall"><span class="busdot">${I.bus('#fff',18)}</span><span>${esc(sn('Ruby Hall'))}<small>163A · 235 · 94A</small></span></button><button class="row" data-act="fromstop" data-arg="Bund Garden"><span class="busdot">${I.bus('#fff',18)}</span><span>${esc(sn('Bund Garden'))}<small>163A · 235 · 94A</small></span></button></div>
+    <button class="mapbox" data-act="go" data-arg="buses" style="display:block;width:calc(100% - 32px);text-align:left"><h6>${t('Nearby')}</h6><div class="m"></div></button>`;
+  h += `</div>${tabbar('home')}`;
+  return h;
+};
+
+V.details = () => {
+  const d = S.draft;
+  const fare = d.mode === 'stop' ? (d.route && d.from && d.to ? fareOf(d.route, d.from, d.to) : null) : (d.fare || null);
+  const total = fare ? fare * d.full + Math.round(fare/2) * d.half : 0;
+  const ok = d.route && d.from && (d.mode === 'stop' ? d.to && fare : d.fare) && (d.full + d.half) > 0;
+  const hl = k => S.coach >= 0 && ['route','from','to','pay'][S.coach] === k ? ' hl' : '';
+  let h = head(t('Ticket Details'), `<span class="timer" id="timer">${mmss(S.timer)}</span>`) + `<div class="body">`;
+  h += `<div class="tcard"><div class="hd">${t('12 Oct, 2026')} | ${TM().now}</div><div class="sec1">`;
+  h += d.route
+    ? `<button class="rrow${hl('route')}" data-act="sheet" data-arg="route"><span class="bicon">${I.bus()}</span><span class="tx"><b>${d.route}</b><span>${dirOf(d.route, d.from, d.to)}</span></span>${I.pencil}</button>`
+    : `<div class="rrow${hl('route')}"><span class="bicon">${I.bus()}</span><button class="sel" data-act="sheet" data-arg="route">${t('Select Route')} ${I.down}</button></div>`;
+  h += `<button class="stop${hl('from')}" data-act="sheet" data-arg="from"><span class="ring"></span><span class="tx"><span>${t('Starting stop')}</span>${d.from?`<b>${esc(sn(d.from))}</b>`:''}${d.from&&d.auto?`<em class="near-k">${I.locpin}${t('Nearest stop to you')}</em>`:''}</span>${d.from?I.pencil:''}</button>`;
+  if (d.mode === 'stop') h += `<button class="stop${hl('to')}" data-act="sheet" data-arg="to"><span class="ring"></span><span class="tx"><span>${t('Ending stop')}</span>${d.to?`<b>${esc(sn(d.to))}</b>`:''}</span>${d.to?I.pencil:''}</button>`;
+  else h += `<div class="stop"><span class="ring"></span><span class="tx"><span>${t('Ending stop')}</span></span></div>`;
+  h += `</div><div class="notch"><i></i></div><div class="sec2"><div class="seg"><button class="${d.mode==='fare'?'on':''}" data-act="mode" data-arg="fare">${t('By Fare')}</button><button class="${d.mode==='stop'?'on':''}" data-act="mode" data-arg="stop">${t('By Ending Stop')}</button></div>`;
+  if (d.mode === 'fare') h += `<div class="lbl">${t('Ticket Price')}</div><div class="fares">${[10,20,30].map(f=>`<button class="${d.fare===f?'on':''}" data-act="fare" data-arg="${f}">${f}</button>`).join('')}</div>`;
+  h += `<div class="lbl">${t('Select Tickets')}</div>
+    <div class="qty"><span class="nm">${t('Full')}${fare?`<b>₹${fare}.0</b>`:''}</span><span class="stp"><button data-act="qty" data-arg="full|-1" aria-label="${t('Fewer')}">-</button><span class="v">${d.full}</span><button data-act="qty" data-arg="full|1" aria-label="${t('More')}">+</button></span></div>
+    <div class="qty" style="margin-top:10px"><span class="nm">${t('Half')}${fare?`<b>₹${(fare/2).toFixed(1)}</b>`:''}</span><span class="stp"><button data-act="qty" data-arg="half|-1" aria-label="${t('Fewer')}">-</button><span class="v">${d.half}</span><button data-act="qty" data-arg="half|1" aria-label="${t('More')}">+</button></span></div>`;
+  h += `</div></div><div style="height:16px"></div></div>`;
+  h += `<div class="paybar"><button class="paybtn${hl('pay')}" data-act="topay" ${ok?'':'disabled'}>${ok?t('Pay ₹{0}', total):t('Pay')}</button></div>`;
+  if (S.coach >= 0) {
+    const C = [
+      ['Bus number','Read it on the bus before boarding, or ask the conductor or a fellow passenger.', 196],
+      S.draft.auto ? ['Starting stop','Filled from your location. Tap it if you’re at a different stop.', 282] : ['Starting stop','The stop where you get on. Type it the way you’d say it to the conductor.', 262],
+      ['Ending stop','The stop where you get off. Type it the way you’d say it to the conductor.', S.draft.auto ? 360 : 340],
+      ['Check, then pay','The conductor checks these by eye.', 470]
+    ][S.coach];
+    h += `<div class="coach" style="top:${C[2]}px" role="dialog" aria-label="${t('Book with help')}"><div class="s">${t('Step {0} of 4', S.coach+1)}</div><b>${t(C[0])}</b><div>${t(C[1])}</div><div class="act"><button data-act="coachoff">${t('Skip guide')}</button><button class="nx" data-act="coachnext">${S.coach===3?t('Got it'):t('Next')}</button></div></div>`;
+  }
+  return h;
+};
+
+V.payapp = () => {
+  let h = headW(t('Choose Payment App')) + `<div class="body" style="padding-top:18px">`;
+  const list = UPI_APPS.filter(a => a[0]===S.app).concat(UPI_APPS.filter(a => a[0]!==S.app));
+  list.forEach(([n,l,c]) => {
+    h += `<button class="opt${n===S.app?' on':''}" data-act="pay" data-arg="${n}"><span class="lg" style="background:${c}">${l}</span><span class="tx"><b>${t(n)}${n===S.app?`<span class="lu">${t('Last used')}</span>`:''}</b></span>${I.chev}</button>`;
+  });
+  h += `</div>`;
+  return h;
+};
+
+V.paying = () => `${SB()}<div class="payw"><div class="spin"></div><b>${t('Opening {0}', appName(S.lastPay))}</b><p>${t('Approve the payment there, then come back')}</p></div>`;
+
+V.ticket = () => {
+  const k = S.ticket;
+  if (!k) return `${closeBar(true)}<div class="payw"><p>${t('No active ticket.')}</p><button class="gbtn" data-act="newticket">${t('Book a ticket')}</button></div>`;
+  return `${closeBar(true)}<div class="body">
+  <div class="tk"><div class="hd"><span>${t('12 Oct, 2026')} | ${t('Booked {0}', k.t)}</span></div>
+    <div class="big"><span class="bicon">${I.bus()}</span><span class="tt"><b>${k.r}</b><span>${dirOf(k.r, k.from, k.to)}</span></span></div>
+    <div class="st"><div><span>${t('From')}</span><b>${esc(sn(k.from))}</b></div><div><span>${t('To')}</span><b>${k.to ? esc(sn(k.to)) : t('Fare ₹{0}', k.fare)}</b></div></div>
+    <div class="fr"><span>${t('{0} Full', k.full)}${k.half?' · '+t('{0} Half', k.half):''}</span><b>₹${k.amt}</b></div>
+    <div class="markrow"><span>${t('Valid till')}</span><b style="font-size:17px">${TM().vt}</b></div><div class="live"><span><i></i>${t('Valid')}</span><span id="clock">${TM().clk}05 ${TM().ap}</span></div></div>
+  <p class="tkno">${t('Ticket no. {0}', 'PMP-2610-'+k.no)}</p>
+  <div class="tip">${I.ticket.replace('width="40" height="28"','width="26" height="18"')}<span>${t('Show this screen to the conductor.')}</span></div>
+  ${S.after === 'firstdone' ? `<div class="okbox">${t('Saved. Next time this trip is one tap, under <b>Book again</b> on Home.')}</div>` : ''}
+  <div style="padding:16px"><button class="paybtn sm" data-act="home">${t('Done')}</button></div></div>`;
+};
+
+V.alltickets = () => {
+  const list = S.booked.map((x,i)=>({...x, ag:'b'+i, now:true})).reverse().concat(S.hist ? APP.map((x,i)=>({...x, ag:'a'+i})) : []);
+  let h = `${head(t('All tickets'))}<div class="body">`;
+  list.forEach(x => {
+    h += `<div class="card" data-act="again" data-arg="${x.ag}"><div class="lt">${I.bus('#111',24)}<b>${x.r}</b><span class="pill ${x.now?'':'ex'}">${x.now?t('Today'):t('Expired')}</span></div><div class="lod">${esc(sn(x.from))} ${I.arrow} ${esc(sn(x.to))}</div><div class="lf"><span>${dt(x.d)} · ${x.t} · ${t('{0} Full', x.n)} = ₹${x.f}</span><button class="gbtn" data-act="again" data-arg="${x.ag}">${t('Book again')}</button></div></div>`;
+  });
+  h += `<div style="height:8px"></div></div>`;
+  return h;
+};
+
+V.pass = () => {
+  const price = S.passType === 'All Route' ? 150 : 70;
+  const ok = /^\d{4}$/.test(S.passId);
+  return head(t('Daily Pass'), `<span class="timer" id="timer">${mmss(S.timer)}</span>`) + `<div class="body"><div class="tcard"><div class="hd">${t('12 Oct, 2026')} | ${TM().now}</div><div class="sec1"><div style="font-size:16px;margin-bottom:10px">${t('Select pass type')}</div><div class="plist"><button class="${S.passType==='PMC & PCMC'?'on':''}" data-act="ptype" data-arg="PMC & PCMC">PMC &amp; PCMC - ₹70.0</button><button class="${S.passType==='All Route'?'on':''}" data-act="ptype" data-arg="All Route">${t('All Route')} - ₹150.0</button></div></div><div class="notch"><i></i></div><div class="sec2"><div style="font-size:15px;margin:4px 0 8px">${t('Last 4 digits of Aadhaar or PAN')}</div><div class="field" style="margin:0"><input id="pid" type="text" inputmode="numeric" maxlength="4" value="${esc(S.passId)}" aria-label="${t('Last 4 digits of Aadhaar or PAN')}"></div><div class="mrline" style="margin-top:6px">${t('Saved from your last pass')}</div></div></div>
+  <div class="ffare"><div class="r t"><span>${t('Final Fare')}</span><span>₹${(price*1.0119).toFixed(2)}</span></div><div class="r"><span>${t('Pass')}</span><span>₹${price.toFixed(2)}</span></div><div class="r"><span>${t('Payment fee')}</span><span>₹${(price*0.0119).toFixed(2)}</span></div></div>
+  <div class="warn">${t('Carry the ID with these digits.')}</div><div style="height:12px"></div></div><div class="paybar"><button class="paybtn" data-act="passpay" ${ok?'':'disabled'}>${t('Pay ₹{0}', (price*1.0119).toFixed(2))}</button></div>`;
+};
+
+V.passview = () => {
+  const p = S.pass;
+  if (!p) return `${closeBar(false)}<div class="payw"><p>${t('No active pass.')}</p><button class="gbtn" data-act="go" data-arg="pass">${t('Buy a pass')}</button></div>`;
+  return `${closeBar(false)}<div class="body"><div class="tk"><div class="hd"><span>${t('Daily Pass')}</span><span>${t('Booked {0}', p.t)}</span></div><div class="big"><span class="bicon">${I.bus()}</span><span class="tt"><b style="font-size:30px">${esc(ptype(p.type))}</b><span>${t('Valid on {0}', t('12 Oct, 2026'))}</span></span></div><div class="st"><div><span>ID</span><b>${t('Aadhaar/PAN ending {0}', p.id)}</b></div></div><div class="fr"><span>${t('Paid')}</span><b>₹${p.amt}</b></div><div class="live"><span><i></i>${t('Valid')}</span><span id="clock">${TM().clk}05 ${TM().ap}</span></div></div><div class="tip">${I.pass.replace('width="28" height="36"','width="18" height="24"')}<span>${t('Show this and your ID to the conductor.')}</span></div><div style="padding:16px"><button class="paybtn sm" data-act="home">${t('Done')}</button></div></div>`;
+};
+
+V.profile = () => {
+  const row = (ic, k, act, arg, sub) => `<button class="prow" data-act="${act}" ${arg?`data-arg="${arg}"`:''}>${ic}<span>${t(k)}${sub?`<small style="display:block;font-size:12px;color:#7A7A7A">${sub}</small>`:''}</span></button>`;
+  return `${headW(t('My Profile'), true)}<div class="body" style="background:#F1F1F1"><button class="prow" data-act="go" data-arg="editprofile" style="padding:18px"><span class="avatar" style="width:52px;height:52px">${I.user}</span><span style="font-size:15px">${esc(S.name)}<small style="display:block;font-size:12px;color:#7A7A7A">${t('Tap here to update your profile')}</small></span></button>
+  ${row(I.globe.replace('width="16" height="16"','width="26" height="26"'),'Language','sheet','lang', langName())}${row(I.ptk,'My Tickets','go','alltickets')}${row(I.ppass,'My Passes','viewpass')}${row(I.replay,'Book with help','guided','',t('Each box explained, one at a time'))}${row(I.hs,'Complaints','go','complaints')}${row(I.share,'Share App','sheet','share')}${row(I.star,'Rate Us','sheet','rate')}
+  <p style="padding:16px 18px;color:#7A7A7A;font-size:13px;margin:0">${t('App version : 1.5.0')}</p></div>`;
+};
+
+V.editprofile = () => `${head(t('Edit Profile'))}<div class="body">
+  <div class="field"><label for="pname">${t('Name')}</label><input id="pname" type="text" autocomplete="off" maxlength="40" value="${esc(S.name)}"></div>
+  <div class="field" style="margin-top:12px"><label for="pmob">${t('Mobile number')}</label><input id="pmob" type="text" value="98•••• 4412" disabled></div>
+  <div class="hint">${t('Your login number can’t be changed here.')}</div>
+  <div class="field" style="margin-top:14px"><label>${t('App language')}</label></div>
+  <div class="amts">${LANGS.map(([k,n])=>`<button class="${S.lang===k?'on':''}" data-act="setlang" data-arg="${k}">${n}</button>`).join('')}</div>
+  <div class="hint" style="margin-top:-6px">${t('The whole app changes to this language.')}</div>
+  </div><div class="paybar"><button class="paybtn sm" data-act="saveprofile">${t('Save')}</button></div>`;
+
+const CTYPES = ['Money deducted, no ticket','Conductor behaviour','Bus did not stop','App not working','Something else'];
+V.complaints = () => `${headW(t('Complaints'))}<div class="body" style="padding-top:12px">
+  <div class="pagehd"><b>${t('What went wrong?')}</b></div>
+  ${CTYPES.map((c,i)=>`<button class="opt ${S.ctype===i?'on':''}" data-act="ctype" data-arg="${i}"><span class="rad"></span><span class="tx"><b>${t(c)}</b></span></button>`).join('')}
+  <div class="field" style="margin-top:6px"><label for="cdesc">${t('Tell us more')}</label><textarea id="cdesc" rows="3" maxlength="300" placeholder="${t('Route, stop and time')}">${esc(S.cdesc)}</textarea></div>
+  <div class="err" style="margin:6px 16px 0">${S.cErr ? esc(t(S.cErr)) : ''}</div><div style="height:12px"></div>
+  </div><div class="paybar"><button class="paybtn sm" data-act="csubmit">${t('Submit')}</button></div>`;
+V.complaintdone = () => `${SB()}<div class="payw"><b>${t('Complaint registered')}</b><p>${t('No. PMP-C-{0}. Keep this number to follow up.', S.cno)}</p><button class="gbtn" data-act="home" style="margin-top:8px;padding:10px 22px;font-size:15px">${t('Go to Home')}</button></div>`;
+
+const SHARE_MSG = 'Book your PMPML bus ticket on your phone. Get the Apli PMPML app on Google Play or the App Store.';
+const starSvg = on => `<svg width="38" height="38" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${on?'#F2B01E':'#D6D6D6'}"/></svg>`;
+
+/* Pune Metro, unchanged from today; example fares */
+const METRO = ['PCMC','Sant Tukaram Nagar','Bhosari (Nashik Phata)','Kasarwadi','Phugewadi','Dapodi','Bopodi','Shivaji Nagar','Civil Court','Budhwar Peth','Mandai','Swargate'];
+function mfare(a,b){ const i=METRO.indexOf(a), j=METRO.indexOf(b); if(i<0||j<0||i===j) return 0; const d=Math.abs(i-j); return d<=2?10:d<=5?20:d<=8?25:30; }
+const QR = (() => { let r=7, h=''; const N=21; const fin=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="#111"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#111"/>`;
+  for (let y=0;y<N;y++) for (let x=0;x<N;x++){ if ((x<8&&y<8)||(x>12&&y<8)||(x<8&&y>12)) continue; r=(r*9301+49297)%233280; if (r/233280>0.5) h+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#111"/>`; }
+  return `<svg width="150" height="150" viewBox="-1 -1 23 23" style="background:#fff" aria-label="QR">${fin(0,0)}${fin(14,0)}${fin(0,14)}${h}</svg>`; })();
+V.metro = () => { const m=S.mdraft, f=mfare(m.from,m.to), ok=f>0&&m.n>0;
+  return head(t('Metro Ticket')) + `<div class="body"><div class="tcard"><div class="hd">${t('12 Oct, 2026')} | ${TM().now}</div><div class="sec1">
+  <button class="stop" data-act="sheet" data-arg="mfrom"><span class="ring"></span><span class="tx"><span>${t('From station')}</span>${m.from?`<b>${esc(sn(m.from))}</b>`:''}</span>${m.from?I.pencil:''}</button>
+  <button class="stop" data-act="sheet" data-arg="mto"><span class="ring"></span><span class="tx"><span>${t('To station')}</span>${m.to?`<b>${esc(sn(m.to))}</b>`:''}</span>${m.to?I.pencil:''}</button>
+  </div><div class="notch"><i></i></div><div class="sec2"><div class="lbl">${t('Select Tickets')}</div><div class="qty"><span class="nm">${t('Tickets')}${f?`<b>₹${f}.0</b>`:''}</span><span class="stp"><button data-act="mqty" data-arg="-1" aria-label="${t('Fewer')}">-</button><span class="v">${m.n}</span><button data-act="mqty" data-arg="1" aria-label="${t('More')}">+</button></span></div></div></div>
+  <div style="height:16px"></div></div>
+  <div class="paybar"><button class="paybtn" data-act="mpay" ${ok?'':'disabled'}>${ok?t('Pay ₹{0}', f*m.n):t('Pay')}</button></div>`; };
+V.metroticket = () => { const k=S.metroT; if(!k) return V.metro();
+  return `${closeBar(false)}<div class="body"><div class="tk"><div class="hd"><span>${t('Pune Metro | Booked {0}', k.t)}</span></div><div class="st"><div><span>${t('From')}</span><b>${esc(sn(k.from))}</b></div><div><span>${t('To')}</span><b>${esc(sn(k.to))}</b></div></div><div class="fr"><span>${t(k.n>1?'{0} Tickets':'{0} Ticket', k.n)}</span><b>₹${k.amt}</b></div><div style="display:flex;justify-content:center;padding:6px 0 16px">${QR}</div></div><div class="tip">${I.metro.replace(/width="\d+" height="\d+"/,'width="22" height="22"')}<span>${t('Scan this at the Metro gate.')}</span></div><div style="padding:16px"><button class="paybtn sm" data-act="home">${t('Done')}</button></div></div>`; };
+
+V.notif = () => `${headW(t('Notifications'))}<div class="body" style="padding-top:14px"><div class="card"><p style="margin:0;color:#555">${t('No new notifications')}</p></div></div>`;
+
+V.buses = () => `${SB()}<div class="hbar"><h4 style="font-weight:700;font-size:20px">${t('Buses')}</h4></div><div class="body">${Object.keys(ROUTES).map(r=>`<button class="card" style="display:block;width:calc(100% - 32px);text-align:left" data-act="route" data-arg="${r}"><div class="lt">${I.bus('#111',24)}<b>${r}</b>${I.chev}</div><div class="lod" style="margin-bottom:0">${esc(sn(ROUTES[r][0]))} ${I.arrow} ${esc(sn(ROUTES[r][ROUTES[r].length-1]))}</div><div style="color:#7A7A7A;font-size:13px">${t('{0} stops', ROUTES[r].length)}</div></button>`).join('')}</div>${tabbar('buses')}`;
+
+V.help = () => {
+  const F = [
+    ['Paid but no ticket?','Open All tickets. If it still shows nothing after 10 minutes, raise a complaint with the UPI Ref No.'],
+    ['How does Book again work?','Every ticket you buy in the app is saved. Your usual trips show on Home: tap the bus number you’re on, then pay.'],
+    ['Can I search stops in Marathi or Hindi?','Yes. Type the name the way you say it, in any script: “station”, “रेल्वे” or “kharadi” all work.'],
+    ['Why does the app suggest a daily pass?','When your usual day costs more than ₹70 in tickets, a pass costs less. The app tells you before your first bus, not after.']
+  ];
+  return `${SB()}<div class="hbar"><h4 style="font-weight:700;font-size:20px">${t('Help')}</h4></div><div class="body">${F.map((f,i)=>`<div class="faq"><button data-act="faq" data-arg="${i}" aria-expanded="${S.faq===i}">${t(f[0])}<span>${S.faq===i?'−':'+'}</span></button>${S.faq===i?`<p>${t(f[1])}</p>${i===0?`<div style="padding:0 14px 14px"><button class="gbtn" data-act="go" data-arg="complaints">${t('Raise a complaint')}</button></div>`:''}`:''}</div>`).join('')}</div>${tabbar('help')}`;
+};
+
+const UPI_APPS = [['Google Pay','G','#4A7FE0'],['PhonePe','Pe','#6A3FB5'],['Paytm','P','#1E8FD5'],['BHIM','B','#E07B39'],['Other UPI app','U','#6B6B6B']];
+const appName = n => n==='Other UPI app' ? t('your UPI app') : n;
+const payUsual = amt => `<button class="paybtn sm" data-act="pay" data-arg="${S.app}">${t('Pay ₹{0} · {1}', amt, S.app==='Other UPI app'?t('UPI app'):S.app)}</button>`;
+
+function sheetHTML(){
+  const sh = S.sheet; if (!sh) return '';
+  let h = `<div class="dim" data-act="sheetclose"><div class="sheet" data-stop="1" role="dialog"><div class="grab"></div>`;
+  const d = S.draft;
+  if (sh.kind === 'route') {
+    const opts = d.from && d.to ? routesFor(d.from, d.to) : d.from ? Object.keys(ROUTES).filter(r=>ROUTES[r].includes(d.from)) : Object.keys(ROUTES);
+    h += `<h6>${t('Select Route')}</h6><div class="sub">${t('Read it on the bus, or ask the conductor')}</div>${opts.map(r=>`<button class="li" data-act="pick" data-arg="route|${r}">${I.bus('#111',22)}<span><b>${r}</b><small>${dirOf(r, d.from, d.to)}</small></span></button>`).join('')}`;
+  } else if (sh.kind === 'from' || sh.kind === 'to') {
+    h += `<h6>${sh.kind==='from'?t('Starting stop'):t('Ending stop')}</h6><div class="sub">${d.route?t('Stops on {0}', d.route):t('All stops')}</div>
+      <div class="field" style="margin:0 0 4px"><input id="stopq" type="search" autocomplete="off" placeholder="${esc(t('e.g. station, रेल्वे, kharadi'))}" aria-label="${esc(t('Type the stop as you’d say it'))}" value="${esc(S.q)}"></div>
+      <div id="stoplist">${stopList()}</div>`;
+  } else if (sh.kind === 'quick') {
+    h += `<h6>${t('Book again·h')}</h6><div class="sub">${t('Check, then pay')}</div><div class="sum"><div class="r1"><span class="bicon" style="width:40px;height:40px">${I.bus('#fff',20)}</span><span><b>${sh.r}</b><br><span>${dirOf(sh.r, sh.from, sh.to)}</span></span></div><div class="od">${esc(sn(sh.from))} → ${esc(sn(sh.to))}</div><div class="r2"><span>${t('{0} Full', 1)}</span><b>₹${sh.amt}</b></div><div style="font-size:12px;color:#7A7A7A;margin-top:4px">${t('Valid till {0} · this bus number only', TM().vt)}</div></div>`;
+    const tip = passTip();
+    if (tip) h += `<div class="passbox"><b>${t('Most days, a pass costs less')}</b><span>${t('On {0} of your last {1} days you took {2} buses, ₹{3} in all. A daily pass is ₹70 and covers every bus till midnight.', tip.days, tip.of, tip.trips, tip.amt)}</span><button class="paybtn sm" data-act="quickpass">${t('Buy today’s pass · ₹70')}</button></div>`;
+    h += payUsual(sh.amt) + `<div class="lrow"><button class="linkbtn" data-act="go" data-arg="payapp">${t('Other ways to pay')}</button><button class="linkbtn" data-act="quickedit">${t('Change stops')}</button></div>`;
+  } else if (sh.kind === 'share') {
+    h += `<h6>${t('Share Apli PMPML')}</h6><div class="sub">${t('Send this to family and friends')}</div><div class="sum" id="sharemsg" style="font-size:15px;line-height:1.45">${esc(t(SHARE_MSG))}</div><button class="paybtn sm" data-act="copylink" style="margin-top:12px">${t('Copy message')}</button>`;
+  } else if (sh.kind === 'rate') {
+    h += `<h6>${t('Rate Apli PMPML')}</h6><div class="sub">${t('How was booking today?')}</div><div style="display:flex;gap:6px;justify-content:center;margin:10px 0 16px">${[1,2,3,4,5].map(n=>`<button data-act="star" data-arg="${n}" aria-label="${t('{0} stars', n)}">${starSvg(n<=S.stars)}</button>`).join('')}</div><button class="paybtn sm" data-act="ratesend" ${S.stars?'':'disabled'}>${t('Submit')}</button>`;
+  } else if (sh.kind === 'mfrom' || sh.kind === 'mto') {
+    const k = sh.kind === 'mfrom' ? 'from' : 'to', other = k === 'from' ? S.mdraft.to : S.mdraft.from;
+    h += `<h6>${k==='from'?t('From station'):t('To station')}</h6><div class="sub">${t('Pune Metro, Purple Line')}</div>${METRO.filter(x=>x!==other).map(x=>`<button class="li" data-act="mpick" data-arg="${k}|${esc(x)}"><span class="ring" style="width:14px;height:14px;border:4px solid #888;border-radius:50%;flex:none"></span><span>${snBoth(x)}</span></button>`).join('')}`;
+  } else if (sh.kind === 'qpass') {
+    h += `<h6>${t('Today’s pass')}</h6><div class="sub">${t('Same as last time · no ID to say out loud')}</div><div class="sum"><div class="r1"><b style="font-size:19px">PMC &amp; PCMC</b></div><div class="r2"><span>${t('ID ending {0}', S.passId)}</span><b>₹70.83</b></div><div style="font-size:12px;color:#7A7A7A;margin-top:4px">${t('₹70 pass + ₹0.83 payment fee')}</div></div>`;
+    h += payUsual(70.83) + `<div class="lrow"><button class="linkbtn" data-act="go" data-arg="payapp">${t('Other ways to pay')}</button><button class="linkbtn" data-act="go" data-arg="pass">${t('Change pass type')}</button></div>`;
+  } else if (sh.kind === 'lang') {
+    h += `<h6>${t('App language')}</h6><div class="sub">${t('The whole app changes to this language.')}</div>${LANGS.map(([k,n,s])=>`<button class="li${S.lang===k?' cur':''}" data-act="setlang" data-arg="${k}"><span class="rad2"></span><span><b>${n}</b><small>${s}</small></span></button>`).join('')}`;
+  }
+  return h + `</div></div>`;
+}
+
+/* ---------- render ---------- */
+const scr = $('#screen');
+function html(){
+  let h = (V[S.screen] || V.home)();
+  h += sheetHTML();
+  if (S.toast) h += `<div class="toast" role="status">${esc(S.toast)}</div>`;
+  return h;
+}
+function render(){
+  scr.className = 'scr' + (S.screen==='lang' ? ' lang' : '') + (['payapp','alltickets','found','profile','help','buses','notif','ticket','passview','complaints','metroticket'].includes(S.screen) ? ' grey' : '');
+  scr.innerHTML = html();
+  wire();
+  notes();
+}
+function go(n, push=true){ if (push && S.screen !== n) S.stack.push(S.screen); S.screen = n; S.sheet = null; render(); scr.querySelector('.body') && (scr.querySelector('.body').scrollTop = 0); }
+function back(){ if (S.sheet){ S.sheet=null; return render(); } S.coach = -1; S.screen = S.stack.pop() || 'home'; render(); }
+function toast(t){ S.toast = t; render(); clearTimeout(toast.h); toast.h = setTimeout(()=>{ S.toast=''; render(); }, 1600); }
+let nextNo = 4471;
+function makeTicket(){
+  const d = S.draft; const fare = d.mode==='stop' ? fareOf(d.route,d.from,d.to) : d.fare;
+  S.ticket = {r:d.route, from:d.from, to:d.mode==='stop'?d.to:'', fare:d.fare, full:d.full, half:d.half, amt:fare*d.full + Math.round(fare/2)*d.half, t:TM().bk, no:nextNo++};
+  S.today.push(S.ticket.amt);
+  if (d.mode==='stop') S.booked.push({d:'12 Oct', t:TM().bk, r:d.route, from:d.from, to:d.to, f:fare, n:d.full||1, src:'App'});
+}
+
+/* ---------- actions ---------- */
+const A = {
+  back, home(){ S.stack=[]; S.coach=-1; S.after=''; go('home', false); },
+  go(n){ if (n==='payapp' && S.sheet && S.sheet.amt) S.payAmt=S.sheet.amt; go(n); },
+  toast,
+  newticket(){ S.draft={route:'',from:'',to:'',mode:'stop',fare:0,full:1,half:0}; S.timer=300; go('details'); },
+  viewticket(){ go('ticket'); }, viewpass(){ go('passview'); },
+  fromstop(s){ S.draft={route:'',from:s,to:'',mode:'stop',fare:0,full:1,half:0}; S.timer=300; go('details'); },
+  route(r){ S.draft={route:r,from:'',to:'',mode:'stop',fare:0,full:1,half:0}; autoFrom(S.draft); S.timer=300; go('details'); },
+  sheet(k){ S.sheet={kind:k}; if (k==='from'||k==='to') S.q=''; render(); },
+  sheetclose(){ S.sheet=null; render(); },
+  pick(v){ const [k,val]=v.split('|'); const d=S.draft; d[k]=val; if (k==='from') d.auto=0;
+    if (k==='route'){ if (d.from && !ROUTES[val].includes(d.from)) { d.from=''; d.auto=0; } if (d.to && !ROUTES[val].includes(d.to)) d.to=''; autoFrom(d); }
+    if (k!=='route' && d.route && !ROUTES[d.route].includes(val)) d.route='';
+    if (k==='from' && d.to===val) d.to='';
+    S.sheet=null; S.q=''; if (S.coach>=0 && ['route','from','to'][S.coach]===k) S.coach++; render(); },
+  locoff(){ S.loc=false; render(); },
+  mode(m){ S.draft.mode=m; render(); },
+  fare(f){ S.draft.fare=+f; render(); },
+  qty(v){ const [k,n]=v.split('|'); S.draft[k]=Math.max(0,Math.min(6,S.draft[k]+ +n)); render(); },
+  coachnext(){ S.coach = S.coach>=3 ? -1 : S.coach+1; render(); },
+  coachoff(){ S.coach=-1; render(); },
+  topay(){ const d=S.draft; const fare=d.mode==='stop'?fareOf(d.route,d.from,d.to):d.fare; S.coach=-1; S.sheet=null; S.payFor='ticket'; S.payAmt=fare*d.full+Math.round(fare/2)*d.half; go('payapp'); },
+  pay(m){
+    const amt = S.sheet && S.sheet.amt ? S.sheet.amt : (S.payAmt || 0);
+    S.lastPay=m; S.app=m; S.sheet=null; if (S.screen!=='paying') S.stack.push(S.screen); S.screen='paying'; render();
+    const s0 = S;
+    setTimeout(()=>{
+      if (S !== s0 || S.screen !== 'paying') return;
+      if (S.payFor==='metro'){ S.metroT={...S.mdraft, amt, t:TM().bk}; S.stack=['home']; S.screen='metroticket'; }
+      else if (S.payFor==='pass'){ S.pass={type:S.passType, id:S.passId, amt:amt.toFixed ? amt.toFixed(2) : amt, t:TM().bk}; S.stack=['home']; S.screen='passview'; }
+      else { makeTicket(); S.stack=['home']; S.screen='ticket'; }
+      render();
+    }, 1500);
+  },
+  quick(v){ const [i,r]=v.split('|'); const g=usual()[+i]; S.draft={route:r,from:g.from,to:g.to,mode:'stop',fare:0,full:1,half:0}; S.payFor='ticket'; S.sheet={kind:'quick', r, from:g.from, to:g.to, amt:fareOf(r,g.from,g.to)}; render(); },
+  quickedit(){ S.sheet=null; S.timer=300; go('details'); },
+  quickpass(){ S.payFor='pass'; S.passType='PMC & PCMC'; S.sheet={kind:'qpass', amt:70.83}; render(); },
+  again(v){ const x = v[0]==='a' ? APP[+v.slice(1)] : S.booked[+v.slice(1)]; S.draft={route:x.r,from:x.from,to:x.to,mode:'stop',fare:0,full:1,half:0}; S.payFor='ticket'; S.sheet={kind:'quick', r:x.r, from:x.from, to:x.to, amt:fareOf(x.r,x.from,x.to)}; render(); },
+  ptype(t){ S.passType=t; render(); },
+  passpay(){ const price=(S.passType==='All Route'?150:70)*1.0119; S.payFor='pass'; S.payAmt=+price.toFixed(2); go('payapp'); },
+  guided(){ S.draft={route:'',from:'',to:'',mode:'stop',fare:0,full:1,half:0}; S.timer=300; S.coach=0; S.after='firstdone'; go('details'); },
+  pickLang(l){ S.lang=l; S.stack=[]; go('home', false); },
+  faq(i){ S.faq = S.faq===+i ? -1 : +i; render(); },
+  setlang(l){ S.lang=l; S.sheet=null; render(); },
+  saveprofile(){ const v=(($('#pname')||{}).value||'').trim(); if(v) S.name=v; back(); toast(t('Profile saved')); },
+  ctype(i){ S.ctype=+i; S.cErr=''; render(); },
+  csubmit(){ if (S.ctype<0){ S.cErr='Choose what went wrong.'; return render(); } S.cno=41000+Math.floor(Math.random()*900); S.ctype=-1; S.cdesc=''; go('complaintdone'); },
+  copylink(){ const done=()=>{ S.sheet=null; toast(t('Message copied')); };
+    const fail=()=>{ const el=$('#sharemsg'); if(el){ const r=document.createRange(); r.selectNodeContents(el); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); } toast(t('Selected. Copy it from here.')); };
+    try { navigator.clipboard.writeText(t(SHARE_MSG)).then(done, fail); } catch(e){ fail(); } },
+  star(n){ S.stars=+n; render(); },
+  ratesend(){ S.sheet=null; render(); toast(t('Thanks for rating')); },
+  metro(){ S.mdraft={from:'',to:'',n:1}; go('metro'); },
+  mpick(v){ const [k,val]=v.split('|'); S.mdraft[k]=val; S.sheet=null; render(); },
+  mqty(n){ S.mdraft.n=Math.max(1,Math.min(6,S.mdraft.n + +n)); render(); },
+  mpay(){ const m=S.mdraft; S.payFor='metro'; S.payAmt=mfare(m.from,m.to)*m.n; go('payapp'); },
+  dot(i){ const c=$('#tripcar'); const el=c && c.children[+i]; if(el) c.scrollTo({left:el.offsetLeft - c.firstElementChild.offsetLeft, behavior:'smooth'}); },
+  tripcard(i){ const g=usual()[+i]; if(!g) return; if (g.routes.length===1) A.quick(i+'|'+g.routes[0]); else toast(t('Tap the bus number you’re on')); }
+};
+
+scr.addEventListener('click', e => {
+  if (drag.moved) { e.preventDefault(); e.stopPropagation(); drag.moved=false; return; }
+  const el = e.target.closest('[data-act]');
+  if (!el || !scr.contains(el)) return;
+  if (el.dataset.act==='sheetclose' && e.target.closest('[data-stop]')) return;
+  if (el.disabled) return;
+  const f = A[el.dataset.act]; if (f) { e.preventDefault(); f(el.dataset.arg); }
+});
+scr.addEventListener('input', e => {
+  if (e.target.id==='pid'){ S.passId=e.target.value.replace(/\D/g,'').slice(0,4); e.target.value=S.passId; const b=scr.querySelector('[data-act="passpay"]'); if(b) b.disabled=!/^\d{4}$/.test(S.passId); }
+  if (e.target.id==='stopq'){ S.q=e.target.value; const L=$('#stoplist'); if(L) L.innerHTML=stopList(); }
+  if (e.target.id==='pname'){ S.name=e.target.value; }
+  if (e.target.id==='cdesc'){ S.cdesc=e.target.value; }
+});
+
+/* mouse drag-to-swipe for carousels (touch and trackpad swipe natively) */
+const drag = {el:null,x:0,sl:0,moved:false};
+scr.addEventListener('mousedown', e => { const c=e.target.closest('.car,.tcar'); if(!c) return; drag.el=c; drag.x=e.clientX; drag.sl=c.scrollLeft; drag.moved=false; c.style.scrollSnapType='none'; });
+window.addEventListener('mousemove', e => { if(!drag.el) return; const dx=e.clientX-drag.x; if(Math.abs(dx)>5) drag.moved=true; drag.el.scrollLeft=drag.sl-dx; });
+window.addEventListener('mouseup', e => { if(!drag.el) return; const c=drag.el; drag.el=null;
+  const w = c.classList.contains('tcar') ? c.clientWidth : (c.firstElementChild ? c.firstElementChild.offsetWidth + 10 : c.clientWidth);
+  const dx = e.clientX - drag.x; let i = Math.round(drag.sl / w); if (dx < -40) i++; else if (dx > 40) i--;
+  c.style.scrollSnapType=''; c.scrollTo({left:Math.max(0,i*w), behavior:'smooth'}); });
+
+function wire(){
+  const car=$('#tripcar');
+  if (car) car.addEventListener('scroll', () => { const w=car.firstElementChild.offsetWidth+10; const i=Math.min(car.children.length-1, Math.round(car.scrollLeft/w)); document.querySelectorAll('#tripdots i').forEach((d,k)=>d.classList.toggle('on',k===i)); }, {passive:true});
+}
+
+/* timers: 5-minute booking timer and live ticket clock */
+let sec = 5;
+setInterval(() => {
+  if ((S.screen==='details'||S.screen==='pass') && S.timer>0){ S.timer--; const t=$('#timer'); if(t) t.textContent=mmss(S.timer); }
+  sec = (sec+1)%60; const c=$('#clock'); if(c) c.textContent=TM().clk+String(sec).padStart(2,'0')+' '+TM().ap;
+}, 1000);
+
+/* ---------- guided walk + notes ---------- */
+const NOTE = {
+  home:['Home','Your usual trips, one tap away',[['Today','Every ticket starts from the Bus Ticket tile and an empty form, even for the trip you took yesterday.'],['New','<b>Book again</b> shows the trips you take most, built from your own tickets, the right direction first for the time of day. A trip one bus serves can be bought at the stop: a ticket stays valid about 2 hours. A trip that 163A and 235 both serve asks <b>Which bus are you on?</b>'],['Why','The conductor needs one word from you. Your usual trip should need one tap.']]],
+  lang:['First open','One question: which language',[['Today','The app opens in English with one Marathi search box. The ticket form and stop names are in English.'],['New','The first screen asks one thing, in all three scripts. Every screen after it follows that choice, stop names included. The chip on Home changes it any time.'],['Why','A rider who reads Marathi should be able to make the whole ticket in Marathi, not only search in it.']]],
+  details:['Ticket form','The same form, with help the first time',[['Today','Route, starting stop, ending stop, Full or Half, then Pay, inside a 5-minute timer, with no help.'],['New','First-timers get one short tip per box, on the real form, ending with what the conductor checks. Stops are found by the names people say.'],['Why','Most people try the app for the first time in a packed bus. A tip on the box they are filling helps more than a tour they have to remember.']]],
+  payapp:['Payment','Pay with your UPI app',[['New','Unchanged. Pick a UPI app and approve with your PIN.']]],
+  paying:['Paying','Approve in your UPI app',[['New','Unchanged. Your UPI app opens with the fare filled in. Approve, and you’re back with the ticket.']]],
+  ticket:['Your ticket','Saved for next time',[['New','Once paid, this trip joins <b>Book again</b> on Home. Next time it is one tap.']]],
+  alltickets:['All tickets','Book again from any past ticket',[['Today','Past tickets are a list to look at. To ride the same trip, you fill the form again.'],['New','Every past ticket has <b>Book again</b>, which opens it ready to pay.']]],
+  pass:['Daily Pass','Saved details',[['New','Your last pass type and ID digits are filled in, so nothing has to be said out loud in a crowded bus.']]],
+  passview:['Your pass','Every bus, all day',[['New','One pass, any route, till midnight. For the rest of the day there is no bus number to pick and nothing to buy on board.']]],
+  profile:['Profile','Language and help, any time',[['New','Change the app’s language, or book with help again.']]],
+  buses:['Buses','Routes and stops',[['New','Unchanged. Tap a route to start a ticket on it.']]],
+  help:['Help','Answers for what’s new',[['New','Short answers on Book again, stop search and the pass suggestion, next to the existing payment questions.']]],
+  editprofile:['Profile','Name and language',[['New','The app language can be changed here or from Home. The whole app switches at once.']]],
+  complaints:['Complaints','Report a problem',[['New','Unchanged.']]],
+  complaintdone:['Complaint sent','A number to follow up',[['New','Unchanged.']]],
+  metro:['Metro ticket','Unchanged',[['New','The Metro flow stays as it is.']]],
+  metroticket:['Metro ticket','Unchanged',[['New','Scanned at the Metro gate, as today.']]],
+  notif:['Notifications','Unchanged',[['New','No change.']]]
+};
+const WALK = [
+  ['A first-time rider opens the app', () => { S=fresh(); S.hist=false; S.screen='lang'; }],
+  ['Picks मराठी: the whole app follows', () => { S=fresh(); S.hist=false; S.lang='mr'; }],
+  ['Help on the first box', () => { S=fresh(); S.hist=false; S.lang='mr'; S.screen='details'; S.stack=['home']; S.coach=0; S.after='firstdone'; }],
+  ['Picks 163A; the nearest stop fills in', () => { S=fresh(); S.hist=false; S.lang='mr'; S.screen='details'; S.stack=['home']; S.coach=1; S.after='firstdone'; S.draft={route:'163A',from:'',to:'',mode:'stop',fare:0,full:1,half:0}; autoFrom(S.draft); }],
+  ['Types “खराडी”, finds the stop', () => { S=fresh(); S.hist=false; S.lang='mr'; S.screen='details'; S.stack=['home']; S.coach=2; S.after='firstdone'; S.draft={route:'163A',from:'',to:'',mode:'stop',fare:0,full:1,half:0}; autoFrom(S.draft); S.sheet={kind:'to'}; S.q='खराडी'; }],
+  ['The guide reaches Pay', () => { S=fresh(); S.hist=false; S.lang='mr'; S.screen='details'; S.stack=['home']; S.coach=3; S.after='firstdone'; S.draft={route:'163A',from:'',to:'Kharadi Gaon',mode:'stop',fare:0,full:1,half:0}; autoFrom(S.draft); }],
+  ['The first ticket', () => { S=fresh(); S.hist=false; S.lang='mr'; S.after='firstdone'; S.draft={route:'163A',from:'Ruby Hall',to:'Kharadi Gaon',mode:'stop',fare:0,full:1,half:0}; makeTicket(); S.screen='ticket'; S.stack=['home']; }],
+  ['Next time, the trip waits on Home', () => { S=fresh(); S.hist=false; S.lang='mr'; S.booked=[{d:'12 Oct', t:'07:14 PM', r:'163A', from:'Ruby Hall', to:'Kharadi Gaon', f:30, n:1, src:'App'}]; }],
+  ['A daily rider, 8:41 am: pass suggested', () => { S=fresh(); S.am=true; }],
+  ['Today’s pass in one tap', () => { S=fresh(); S.am=true; S.payFor='pass'; S.sheet={kind:'qpass', amt:70.83}; }],
+  ['Another day, evening: Book again', () => { S=fresh(); S.today=[30,20]; }],
+  ['At Ruby Hall: tap the bus you’re on', () => { S=fresh(); S.today=[30,20]; const g=usual()[0]; S.draft={route:'235',from:g.from,to:g.to,mode:'stop',fare:0,full:1,half:0}; S.payFor='ticket'; S.sheet={kind:'quick', r:'235', from:g.from, to:g.to, amt:fareOf('235',g.from,g.to)}; }],
+  ['Book again from any past ticket', () => { S=fresh(); S.screen='alltickets'; S.stack=['home']; }]
+];
+let wi = 0;
+function walk(i){ wi = Math.max(0, Math.min(WALK.length-1, i)); WALK[wi][1](); render(); const c=$('#tripcar'); if(c) c.scrollLeft = 0; $('#b-prev').disabled = wi===0; $('#b-next').disabled = wi===WALK.length-1; steps(); }
+function steps(){ $('#steps').innerHTML = WALK.map((w,i)=>`<li><button data-w="${i}" aria-current="${i===wi}"><span class="num">${i+1}</span>${w[0]}</button></li>`).join(''); }
+$('#steps').addEventListener('click', e => { const b=e.target.closest('[data-w]'); if(b) walk(+b.dataset.w); });
+$('#b-next').onclick = () => walk(wi+1);
+$('#b-prev').onclick = () => walk(wi-1);
+$('#b-reset').onclick = () => walk(0);
+function notes(){
+  const n = NOTE[S.screen] || NOTE.home;
+  let k = n[0], h = n[1], rows = n[2];
+  if (S.screen==='home' && !S.sheet && !usual().length) { k='First time on Home'; h='Help offered where you are, not in a tour'; rows=[['Today','A first-time rider lands on the full Home and has to work out where to start.'],['New','One card: <b>First time booking?</b> Start. It opens the real ticket form with a tip on each box.'],['Why','People learn an app by using it. A tour shown before the first ticket is forgotten by the time the bus comes.']]; }
+  else if (S.screen==='home' && !S.sheet && !S.hist && S.booked.length) { k='Home, after the first ticket'; h='The second ticket is one tap'; rows=[['New','The trip just booked now sits under <b>Book again</b>.'],['Why','Nothing has to be learned in advance. The second ticket is easier than the first, and the app gets faster the more it is used.']]; }
+  else if (S.screen==='home' && !S.sheet && passTip()) { k='Daily pass suggestion'; h='Told before the first bus, not after'; rows=[['Today','The app sells passes but never says when one would cost less.'],['New','Before the first ticket of the day, if most recent days cost more than ₹70 in tickets, Home says so with the rider’s own numbers. One tap buys the pass.'],['Why','The rider gets something the conductor never offers: a cheaper day. And a pass covers every bus, so there is no “which bus comes first” and nothing to buy on board for the rest of the day.']]; }
+  if (S.screen==='details' && !S.sheet && S.draft.auto && (S.coach<0 || S.coach===1)) { k='Starting stop'; h='Filled from your location, as today'; rows=[['Today','With location on, picking the bus number fills in the nearest stop on its route. This works the same way in the new design.'],['New','Only the first-booking tip, which tells the rider to tap the stop if they’re getting on somewhere else.']]; }
+  if (S.sheet && S.sheet.kind==='lang') { k='Language'; h='Changed in one tap, for the whole app'; rows=[['New','The chip at the top of Home opens this. Every screen switches at once, stop names included.']]; }
+  if (S.sheet && (S.sheet.kind==='from' || S.sheet.kind==='to')) { k='Stop search'; h='Type the stop the way you’d say it'; rows=[['Today','You scroll a list of official names, like “Pune Station Moledina Stand”. Nobody says that to the conductor.'],['New','Type what you’d say: “station”, “रेल्वे”, “kharadi”. Any spelling, in any script, finds the stop. The everyday name shows under the official one.'],['Why','The conductor understands the name you say. The app should too.']]; }
+  if (S.sheet && S.sheet.kind==='quick') { k='Book again'; h='Tap your bus, check, pay'; rows=[['Today','The same trip means the same form again, or telling the conductor.'],['New','One tap on the bus number opens a summary: route, direction, stops and fare. Then pay.'],['Why','A ticket is for one route. Riders read the number on the bus before boarding, so asking is faster and more certain than guessing.']]; }
+  if (S.sheet && S.sheet.kind==='qpass') { k='Daily pass'; h='Same as last time, in one tap'; rows=[['New','Pass type and ID digits filled in, the full price shown before paying.'],['Why','A pass works on any route, so it can be bought at home, before the first bus.']]; }
+  $('#n-k').textContent = k; $('#n-h').textContent = h;
+  $('#n-rows').innerHTML = rows.map(r=>`<div class="${r[0]==='New'?'n':''}"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x===t));
+  $('#p-try').hidden = t.id!=='tab-try'; $('#p-flow').hidden = t.id!=='tab-flow';
+  if (t.id==='tab-flow') flow();
+});
+
+/* ---------- today vs new board ---------- */
+const FLOW = [
+  ['First open','Choose a language once','<b>Today</b> the app opens in English, with one Marathi search box. <b>New</b> one question sets the language for every screen, stop names included.','01',0],
+  ['First booking','Help on the real form','<b>Today</b> the form starts empty, with no help. <b>New</b> first-timers get one tip per box, ending with what the conductor checks.','02',2],
+  ['Finding a stop','Type it the way you say it','<b>Today</b> you pick from official names like “Pune Station Moledina Stand”. <b>New</b> “station”, “रेल्वे” or “kharadi” finds it, in any script.','02',4],
+  ['Home','Your usual trips, one tap away','<b>Today</b> every trip starts from the Bus Ticket tile. <b>New</b> Book again shows your usual trips, built from your own tickets.','01',10],
+  ['At the stop','Tap the bus you’re on','<b>Today</b> you fill the form again, or tell the conductor. <b>New</b> a one-route trip books at the stop; for 163A or 235, tap the one you’re on.','05',11],
+  ['Daily pass','Suggested before the first bus','<b>Today</b> the app sells passes but never says when one costs less. <b>New</b> on mornings when your usual day costs more than ₹70, Home says so, with your own numbers.','07',8],
+  ['Ticket history','Book again from any ticket','<b>Today</b> past tickets are only a list. <b>New</b> every one has Book again.','11',12]
+];
+let flowDone = false;
+function flow(){
+  if (flowDone) return; flowDone = true;
+  const saved = S, savedWi = wi;
+  $('#flow').innerHTML = FLOW.map((f,i)=>`<div class="frow"><div class="ftxt"><div class="step-k">${i+1} · ${f[0]}</div><h3>${f[1]}</h3><p>${f[2]}</p></div><div class="fcol"><span class="cap">Today</span>${f[3]?`<div class="dev"><div class="dev-in"><img class="shot" src="${SHOTS[f[3]]}" alt="Today's Apli PMPML screen: ${f[0]}"></div></div>`:`<div class="none">Not in the app today</div>`}</div><div class="fcol"><span class="cap n">New · tap to try</span><div class="dev mini" data-f="${i}"><div class="dev-in"></div></div></div></div>`).join('');
+  document.querySelectorAll('.mini').forEach(m => {
+    const f = FLOW[+m.dataset.f]; WALK[f[4]][1]();
+    const d = document.createElement('div'); d.className = 'scr' + (S.screen==='lang' ? ' lang' : '') + (['payapp','alltickets','ticket'].includes(S.screen)?' grey':''); d.innerHTML = html().replace(/ id="[^"]*"/g,'');
+    const box = m.firstElementChild; box.appendChild(d);
+    const fit = () => { d.style.transform = 'scale(' + (box.clientWidth/393) + ')'; };
+    fit(); new ResizeObserver(fit).observe(box);
+    m.setAttribute('role','button'); m.setAttribute('tabindex','0'); m.setAttribute('aria-label','Try this screen');
+    const open = () => { $('#tab-try').click(); walk(f[4]); window.scrollTo({top:0, behavior:'smooth'}); };
+    m.addEventListener('click', open); m.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
+  });
+  S = saved; wi = savedWi;
+}
+
+walk(0);
+document.querySelectorAll('.chip[data-start]').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.chip[data-start]').forEach(x => x.setAttribute('aria-pressed', x===c));
+  walk(+c.dataset.start);
+}));
+})();
+</script>
+<script>
+(function(){
+  var b=document.getElementById('about-btn'), p=document.getElementById('about-pop');
+  function set(o){ p.hidden=!o; b.setAttribute('aria-expanded', o?'true':'false'); }
+  b.addEventListener('click', function(e){ e.stopPropagation(); set(p.hidden); });
+  document.addEventListener('click', function(e){ if(!p.hidden && !p.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') set(false); });
+})();
+</script>
+
+</body></html>
