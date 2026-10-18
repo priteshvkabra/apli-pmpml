@@ -4,6 +4,10 @@ A working prototype for **Apli PMPML**, the city bus app for Pune and Pimpri-Chi
 
 > Independent product case study. Not affiliated with PMPML or its app vendor.
 
+<p align="center"><img src="apli-pmpml.gif" alt="The prototype in 24 seconds: a daily rider books again in two taps, then a new rider books in Marathi with help on each box" width="360"></p>
+
+**Try it live:** [apli-pmpml.vercel.app](https://apli-pmpml.vercel.app/)
+
 ## The problem
 
 Riders who have the app still buy from the conductor. With the conductor, they say one stop name. In the app, they fill a blank English form for the same trip, every time.
