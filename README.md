@@ -4,7 +4,7 @@ A working prototype for **Apli PMPML**, the city bus app for Pune and Pimpri-Chi
 
 > Independent product case study. Not affiliated with PMPML or its app vendor.
 
-<p align="center"><img src="apli-pmpml.gif" alt="The prototype in 24 seconds: a daily rider books again in two taps, then a new rider books in Marathi with help on each box" width="360"></p>
+<p align="center"><img src="apli-pmpml.gif" alt="The prototype in 36 seconds, in the order of the guided walkthrough: a new rider books in Marathi with help, a daily rider buys a pass in the morning and books again in the evening" width="360"></p>
 
 **Try it live:** [apli-pmpml.vercel.app](https://apli-pmpml.vercel.app/)
 
